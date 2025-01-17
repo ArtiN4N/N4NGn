@@ -14,6 +14,28 @@ Console :: struct {
     open: bool,
 }
 
+// Procedure that creates a console.
+// Allocates memory for a console input string.
+// This allocated memory must at some point be free'd.
+createConsole :: proc() -> Console  {
+    return {
+        input = strings.builder_make(),
+        cursor = 0,
+        open = false,
+    }
+}
+
+// Procedure that destroys a console, along with its allocated input memory.
+destroyConsole :: proc(console: ^Console) {
+    strings.builder_destroy(&console.input)
+}
+
+// Procedure that sets a console's open status to a particular value.
+// Value defaults to true
+setConsoleOpen :: proc(console: ^Console, status: bool = true) {
+    console.open = status
+}
+
 // Procedure that handles adding a character to console input.
 addCharacterToConsole :: proc(console: ^Console, character: u8) -> bool {
     // Failure if console is not open.
@@ -62,4 +84,9 @@ removeCharacterFromConsole :: proc(console: ^Console) -> bool {
     strings.write_bytes(&console.input, bytes2)
 
     return true
+}
+
+// Procecure that grabs a consoles current input as a string.
+grabConsoleCommand :: proc(console: ^Console) -> string {
+    return strings.to_string(console.input)
 }
