@@ -5,11 +5,14 @@ import "core:strings"
 
 import rl "vendor:raylib"
 
+DEFAULT_WINDOW_SIZE :: Vector2i{ 400, 400 }
+
 // Struct that contains variables relevant to the "state" of the application as a whole.
 // Contains all variable information about the game, meaning that any behaviour can be achieved, as long as there is access to the state .
 State :: struct {
     console: Console,
     active: bool,
+    windowSize: Vector2i,
 }
 
 // Procedure that initializes the state.
@@ -18,6 +21,7 @@ initialState :: proc() -> State {
     return {
         console = createConsole(),
         active = true,
+        windowSize = DEFAULT_WINDOW_SIZE,
     }
 }
 
