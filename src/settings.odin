@@ -20,19 +20,35 @@ initSettings :: proc() -> Settings {
     }
 }
 
+GEAR_RAD :: 10
+GEAR_MARGIN :: 10
+GEAR_P :: GEAR_RAD + GEAR_MARGIN
+
+isSettingsGearClicked :: proc() -> bool {
+    if !rl.IsMouseButtonDown(rl.MouseButton.LEFT) {
+        return false
+    }
+
+    mousePos := rl.GetMousePosition()
+    clickMargin : f32 = 5
+
+    xInBounds := mousePos.x >= GEAR_P - GEAR_RAD - clickMargin && mousePos.x <= GEAR_P + GEAR_RAD + clickMargin
+    yInBounds := mousePos.y >= GEAR_P - GEAR_RAD - clickMargin && mousePos.y <= GEAR_P + GEAR_RAD + clickMargin
+
+    return xInBounds && yInBounds
+}
+
 drawSettingsGear :: proc() {
     // gear ring
-    margin : f32 = 20
-    gearRad : f32 = 10
-    gearPosition := rl.Vector2{ WINDOW_WIDTH - gearRad - margin, gearRad + margin }
+    gearPosition := rl.Vector2{ GEAR_P, GEAR_P }
     gearInnerRad : f32 = 4
     gearSegments : i32 = 20
-    rl.DrawRing(gearPosition, gearInnerRad, gearRad, 0, 360, gearSegments, rl.BLACK)
+    rl.DrawRing(gearPosition, gearInnerRad, GEAR_RAD, 0, 360, gearSegments, rl.BLACK)
 
     // gear stubs
     for x : f32 = 0; x < 360; x += 45 {
         rad : f32 = math.PI * x / 180
-        rec := rl.Rectangle{ gearPosition.x + math.cos(rad) * gearRad, gearPosition.y + math.sin(rad) * gearRad, gearRad / 2, gearRad / 2}
+        rec := rl.Rectangle{ gearPosition.x + math.cos(rad) * GEAR_RAD, gearPosition.y + math.sin(rad) * GEAR_RAD, GEAR_RAD / 2, GEAR_RAD / 2}
         rl.DrawRectanglePro(rec, rl.Vector2{ rec.width / 2, rec.height / 2 }, x, rl.BLACK)
     }
 }
