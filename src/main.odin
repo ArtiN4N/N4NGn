@@ -22,5 +22,7 @@ main :: proc() {
         defer rl.EndDrawing()
 
         rl.ClearBackground(rl.RAYWHITE)
+
+        drawSettingsGear()
     }
 }

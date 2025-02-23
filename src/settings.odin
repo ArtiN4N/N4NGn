@@ -18,3 +18,7 @@ initSettings :: proc() -> Settings {
         true,
     }
 }
+
+drawSettingsGear() :: proc() {
+
+}
