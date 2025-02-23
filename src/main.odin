@@ -5,21 +5,20 @@ import "core:strings"
 
 import rl "vendor:raylib"
 
-main :: proc() {
-    state := initialState()
-    defer destroyState(&state)
+WINDOW_WIDTH :: 800
+WINDOW_HEIGHT :: 800
 
-    rl.InitWindow(state.windowSize.x, state.windowSize.y, "storymap")
+main :: proc() {
+    rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "n4ngn")
     defer rl.CloseWindow()
 
     rl.SetExitKey(.KEY_NULL)
     rl.SetTargetFPS(30)
 
-    for !rl.WindowShouldClose() && state.active {
+    for !rl.WindowShouldClose() {
         rl.BeginDrawing()
         defer rl.EndDrawing()
 
         rl.ClearBackground(rl.RAYWHITE)
-        rl.DrawFPS(10, 10)
     }
 }
