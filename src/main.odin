@@ -18,11 +18,19 @@ main :: proc() {
     rl.SetTargetFPS(30)
 
     for !rl.WindowShouldClose() && !state.settings.exit {
+        if isSettingsGearClicked() {
+            state.settings.menuOpen = !state.settings.menuOpen
+        }
+
         rl.BeginDrawing()
         defer rl.EndDrawing()
 
         rl.ClearBackground(rl.RAYWHITE)
 
-        drawSettingsGear()
+        if state.settings.menuOpen {
+            drawSettingsMenu(state.settings)
+        }
+
+        drawSettingsGear(state.settings)
     }
 }
