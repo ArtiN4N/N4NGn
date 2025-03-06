@@ -1,0 +1,8 @@
+0.00 @ main.odin(143) -> Hello World!
+0.02 @ initialize.odin(76) -> Initialized SDL.
+0.05 @ initialize.odin(85) -> Initialized SDL window.
+0.17 @ initialize.odin(92) -> Initialized SDL renderer.
+2.76 @ handle_key_event.odin(102) -> Manual key log.
+2.90 @ handle_key_event.odin(102) -> Manual key log.
+-1.00 @ main.odin(153) -> Goodbye World.
+-1.00 @ game_cleanup.odin(35) -> Cleanup successful.
