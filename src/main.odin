@@ -5,68 +5,24 @@ import "core:os"
 import "core:strings"
 import sdl "vendor:sdl3"
 
-WINDOW_TITLE :: "Window Title"
-SCREEN_WIDTH :: 800
-SCREEN_HEIGHT :: 600
-
-Game :: struct {
-    window:   ^sdl.Window,
-    renderer: ^sdl.Renderer,
-    event:    sdl.Event,
-	quit: bool,
-}
-
-get_uptime :: proc() -> f32 {
-	return (cast(f32) sdl.GetTicks()) / 1000.0
-}
-
-game_cleanup :: proc(game: ^Game) {
-	sdl.DestroyRenderer(game.renderer) 
-	sdl.DestroyWindow(game.window)
-
-	sdl.Quit()
-
-	log("", -1, "Cleanup successful.")
-}
-
-initialize :: proc(game: ^Game) -> bool {
-	sdl_init_flags : sdl.InitFlags = {.EVENTS, .VIDEO}
-	if !sdl.Init(sdl_init_flags) {
-		log("", get_uptime(), "Error initializing SDL. SDL error message: %s", sdl.GetError())
-		return false
-	}
-	log("", get_uptime(), "Initialized SDL.")
-
-	sdl_window_flags : sdl.WindowFlags = {.RESIZABLE}
-	game.window = sdl.CreateWindow(WINDOW_TITLE, SCREEN_WIDTH, SCREEN_HEIGHT, sdl_window_flags)
-
-	if game.window == nil {
-		log("", get_uptime(), "Error creating SDL2 window. SDL error message: %s", sdl.GetError())
-		return false
-	}
-	log("", get_uptime(), "Initialized SDL window.")
-
-	game.renderer = sdl.CreateRenderer(game.window, nil)
-	if game.renderer == nil {
-		log("", get_uptime(), "Error creating SDL2 renderer. SDL error message: %s", sdl.GetError())
-		return false
-	}
-	log("", get_uptime(), "Initialized SDL renderer.")
-
-	return true
-}
-
-handle_key_event :: proc(game: ^Game, key_code: sdl.Scancode) {
-	#partial switch key_code {
+handle_keydown_event :: proc(game: ^Game, scan_code: sdl.Scancode) {
+	#partial switch scan_code {
 	case .ESCAPE:
 		game.quit = true
 	case .L:
-		log("", get_uptime(), "Manual key log.")
+		log("", get_uptime(), "Manual scancode key log.")
+	case .V:
+		new_vsync : i32 = 1
+		if game.meta_data.vsync == 1 { new_vsync = 0 }
+		change_meta_vsync(&game.meta_data, &game.renderer, new_vsync)
+	case .F:
+		new_fullscreen := true
+		if game.meta_data.fullscreen { new_fullscreen = false }
+		change_meta_fullscreen(&game.meta_data, &game.window, new_fullscreen)
 	}
 }
 
-
-game_run :: proc(game: ^Game) {
+game_handle_events :: proc(game: ^Game) {
 	for sdl.PollEvent(&game.event) {
 		#partial switch game.event.type {
 
@@ -75,27 +31,51 @@ game_run :: proc(game: ^Game) {
 			return
 
 		case .KEY_DOWN:
-			handle_key_event(game, game.event.key.scancode)
+			handle_keydown_event(game, game.event.key.scancode)
 		}
 	}
+}
 
+game_render :: proc(game: ^Game) {
+	sdl.SetRenderDrawColor(game.renderer, 0, 0, 0, 255)
 	sdl.RenderClear(game.renderer)
 
-	sdl.RenderPresent(game.renderer)
+	sdl.SetRenderDrawColor(game.renderer, 255, 255, 255, 255)
+	sdl.RenderDebugTextFormat(game.renderer, 10, 10, "FPS = %d", game.timing.fps)
 
-	sdl.Delay(16)
+	background : ^^sdl.Texture = &game.texture_sets["debug"].textures["car.bmp"]
+
+	sdl.RenderTexture(game.renderer, background^, nil, nil)
+
+	sdl.RenderPresent(game.renderer)
+}
+
+game_loop :: proc(game: ^Game) {
+	update_timesteps(&game.timing)
+	game.timing.dt = get_deltatime(game.timing)
+	if (game.timing.timestepsIndex == 0) { game.timing.fps = cast(int) (1.0 / game.timing.dt) }
+
+	game_handle_events(game)
+
+	game_render(game)
+
+	//sdl.Delay(1)
 }
 
 main :: proc() {
-	game: Game
-
 	init_logs("", "special_")
-    log("", get_uptime(), "Hello World!")
+    log("Hello World!")
 
-	if !initialize(&game) { return }
-	defer game_cleanup(&game)
+	game: Game = {}
+	init_game(&game)	
+	init_sdl(&game)
 
-	for !game.quit { game_run(&game) }
+	load_texture_set(&game.texture_sets["debug"], &game.renderer, "debug")
 
-	log("", -1, "Goodbye World.")
+	for !game.quit { game_loop(&game) }
+
+	log("Goodbye World.")
+
+	cleanup_game(&game)
+	end_sdl(&game)
 }

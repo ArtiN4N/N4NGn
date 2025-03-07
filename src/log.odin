@@ -18,11 +18,11 @@ init_logs :: proc(log_prefixes: ..string) {
 
 // Function that will write data to a log file.
 // prefix argument is for writing to specific log files, if so desired.
-log :: proc(file_prefix: string, log_time: f32, data: string, args: ..any, location := #caller_location) {
+log :: proc(data: string, args: ..any, file_prefix : string = "", location := #caller_location) {
 	// Can only concatenate string slices... so here we are
 	slice := [?]string { file_prefix, "log.txt" }
 	file_name := strings.concatenate(slice[:])
-	//
+
 	log_fd, open_error := os.open(file_name, os.O_APPEND)
 	for open_error != os.ERROR_NONE {
 		fmt.eprintfln("Well this is awkward... opening log file %s failed. OS Error: %v", file_name, os.error_string(open_error))
@@ -32,7 +32,7 @@ log :: proc(file_prefix: string, log_time: f32, data: string, args: ..any, locat
 	// Formatting the log write...
 	log_builder := strings.builder_make()
 
-	fmt.sbprintf(&log_builder, "%.2f @ %v.odin(%v) -> ", log_time, location.procedure, location.line)
+	fmt.sbprintf(&log_builder, "%.2f @ %v.odin(%v) -> ", get_uptime(), location.procedure, location.line)
 	fmt.sbprintf(&log_builder, data, ..args)
 	strings.write_byte(&log_builder, '\n')
 	
