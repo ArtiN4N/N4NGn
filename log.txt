@@ -1,13 +1,21 @@
-0.00 @ main.odin(67) -> Hello World!
-0.03 @ init_sdl.odin(17) -> Initialized SDL.
-0.17 @ init_sdl.odin(30) -> Initialized SDL window.
-0.18 @ init_sdl.odin(31) -> Initialized SDL renderer.
-0.18 @ change_meta_vsync.odin(35) -> VSync set to 1.
-0.19 @ change_meta_fullscreen.odin(42) -> Fullscreen set to false.
-0.19 @ change_meta_fullscreen.odin(50) -> Window size set to 800,800.
-0.20 @ load_texture_set.odin(29) -> Loading texture set debug
-0.23 @ load_texture_set.odin(39) -> Loaded texture from file assets/img/car.bmp.
-1.67 @ main.odin(77) -> Goodbye World.
-1.67 @ destroy_texture_set.odin(48) -> Destroyed car.bmp texture.
-1.68 @ destroy_texture_set.odin(52) -> Destroyed texture set debug
-1.70 @ end_sdl.odin(43) -> Cleanup successful.
+0.00 @ main.odin(83) -> Hello World!
+0.02 @ init_sdl.odin(17) -> Initialized SDL.
+0.16 @ init_sdl.odin(30) -> Initialized SDL window.
+0.16 @ init_sdl.odin(31) -> Initialized SDL renderer.
+0.16 @ change_meta_vsync.odin(35) -> VSync set to 1.
+0.17 @ change_meta_fullscreen.odin(42) -> Fullscreen set to false.
+0.17 @ change_meta_fullscreen.odin(50) -> Window size set to 800,800.
+0.18 @ load_texture_set.odin(29) -> Loading texture set debug
+0.20 @ load_texture_set.odin(40) -> Loaded texture from file assets/img/car.bmp.
+0.21 @ load_texture_set.odin(40) -> Loaded texture from file assets/img/player.png.
+0.22 @ load_texture_set.odin(40) -> Loaded texture from file assets/img/floor.bmp.
+0.23 @ load_texture_set.odin(40) -> Loaded texture from file assets/img/pick.png.
+0.23 @ load_texture_set.odin(40) -> Loaded texture from file assets/img/teto.png.
+4.07 @ main.odin(93) -> Goodbye World.
+4.07 @ destroy_texture_set.odin(49) -> Destroyed floor.bmp texture.
+4.08 @ destroy_texture_set.odin(49) -> Destroyed pick.png texture.
+4.09 @ destroy_texture_set.odin(49) -> Destroyed teto.png texture.
+4.09 @ destroy_texture_set.odin(49) -> Destroyed player.png texture.
+4.10 @ destroy_texture_set.odin(49) -> Destroyed car.bmp texture.
+4.10 @ destroy_texture_set.odin(53) -> Destroyed texture set debug
+4.12 @ end_sdl.odin(43) -> Cleanup successful.

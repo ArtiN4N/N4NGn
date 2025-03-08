@@ -5,7 +5,7 @@ import "core:os"
 import "core:strings"
 import sdl "vendor:sdl3"
 
-handle_keydown_event :: proc(game: ^Game, scan_code: sdl.Scancode) {
+handle_keydown_event :: proc(game: ^Game, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
 	#partial switch scan_code {
 	case .ESCAPE:
 		game.quit = true
@@ -20,20 +20,32 @@ handle_keydown_event :: proc(game: ^Game, scan_code: sdl.Scancode) {
 		if game.meta_data.fullscreen { new_fullscreen = false }
 		change_meta_fullscreen(&game.meta_data, &game.window, new_fullscreen)
 	}
+
+	handle_player_input_keydown(&game.player, scan_code, key_code)
+}
+
+handle_keyup_event :: proc(game: ^Game, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
+	handle_player_input_keyup(&game.player, scan_code, key_code)
 }
 
 game_handle_events :: proc(game: ^Game) {
 	for sdl.PollEvent(&game.event) {
-		#partial switch game.event.type {
-
+		#partial switch game.event.type {	
 		case .QUIT:
 			game.quit = true
 			return
 
 		case .KEY_DOWN:
-			handle_keydown_event(game, game.event.key.scancode)
+			if !game.event.key.repeat { handle_keydown_event(game, game.event.key.scancode, game.event.key.key) }
+
+		case .KEY_UP:
+			if !game.event.key.repeat { handle_keyup_event(game, game.event.key.scancode, game.event.key.key) }
 		}
 	}
+}
+
+game_update :: proc(game: ^Game) {
+	update_player_entity(&game.player, game.timing.dt)
 }
 
 game_render :: proc(game: ^Game) {
@@ -47,6 +59,8 @@ game_render :: proc(game: ^Game) {
 
 	sdl.RenderTexture(game.renderer, background^, nil, nil)
 
+	draw_player_entity(&game.player, game.renderer)
+
 	sdl.RenderPresent(game.renderer)
 }
 
@@ -56,6 +70,8 @@ game_loop :: proc(game: ^Game) {
 	if (game.timing.timestepsIndex == 0) { game.timing.fps = cast(int) (1.0 / game.timing.dt) }
 
 	game_handle_events(game)
+	
+	game_update(game)
 
 	game_render(game)
 
@@ -67,10 +83,10 @@ main :: proc() {
     log("Hello World!")
 
 	game: Game = {}
-	init_game(&game)	
+	init_game(&game)
 	init_sdl(&game)
 
-	load_texture_set(&game.texture_sets["debug"], &game.renderer, "debug")
+	load_game(&game)
 
 	for !game.quit { game_loop(&game) }
 

@@ -32,6 +32,7 @@ load_texture_set :: proc(set: ^TextureSet, renderer: ^^sdl.Renderer, name: strin
         file_path := strings.concatenate(slice[:])
 
         set.textures[file] = img.LoadTexture(renderer^, strings.clone_to_cstring(file_path))
+
         if set.textures[file] == nil {
             log("Error loading texture from file %s: %s", file_path, sdl.GetError())
         }

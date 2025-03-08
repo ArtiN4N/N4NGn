@@ -13,7 +13,8 @@ Game :: struct {
 	quit: bool,
 	timing: GameClock,
     meta_data: SDLMetaData,
-    texture_sets: map[string]TextureSet
+    texture_sets: map[string]TextureSet,
+    player: Entity,
 }
 
 // Happens before SDL is init
@@ -30,13 +31,23 @@ init_game :: proc(game: ^Game) {
 
     game.texture_sets = make(map[string]TextureSet)
 
-    init_debug_texture_set(&game.texture_sets)   
+    init_debug_texture_set(&game.texture_sets)
+}
+
+load_game :: proc(game: ^Game) {
+    load_texture_set(&game.texture_sets["debug"], &game.renderer, "debug")
+
+    init_player_entity(&game.player, &game.texture_sets["debug"].textures["teto.png"])
 }
 
 init_debug_texture_set :: proc(t_sets: ^map[string]TextureSet) {
     t_sets["debug"] = create_texture_set(
         "assets/img/",
-        "car.bmp"
+        "car.bmp",
+        "player.png",
+        "floor.bmp",
+        "pick.png",
+        "teto.png",
     )
 }
 
