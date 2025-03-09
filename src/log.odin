@@ -5,14 +5,17 @@ import "core:os"
 import "core:strings"
 import sdl "vendor:sdl3"
 
+// Prefixes will create prefix_log.txt files. Should always include the empty string "" for the standard log file.
 init_logs :: proc(log_prefixes: ..string) {
-	// Truncs all log files to be used
+	// Truncs all log files to be used. Basically, wipes all log files that have old stuff in them
 	for prefix in log_prefixes {
 		slice := [?]string { prefix, "log.txt" }
 		file_name := strings.concatenate(slice[:])
 
 		log_fd, open_error := os.open(file_name, os.O_RDWR | os.O_TRUNC | os.O_CREATE)
 		os.close(log_fd)
+
+		delete(file_name)
 	}
 }
 
@@ -46,4 +49,6 @@ log :: proc(data: string, args: ..any, file_prefix : string = "", location := #c
 	if write_error != os.ERROR_NONE {
         fmt.eprintfln("Well this is awkward... writing to log file %s failed. OS Error: ", file_name, os.error_string(write_error))
     }
+
+	delete(file_name)
 }

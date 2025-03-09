@@ -7,14 +7,15 @@ import sdl "vendor:sdl3"
 
 GameClock :: struct {
 	fps: int,
+	// An array of 10 values for timesteps. Allows a rolling average to be used for dt.
+	// This theoretically makes physics smoother during times of slight frame flucuation.
 	timesteps: [10]f32,
 	timestepsIndex: uint,
 	dt: f32,
 	lastTicks: u64,
-	
 }
 
-// Happens before SDL is init
+// Warning: This proc happens before SDL is init
 init_game_clock :: proc(gc: ^GameClock) {
 	gc.fps = 1
 	gc.timesteps = {}
@@ -44,5 +45,6 @@ get_deltatime :: proc(timing: GameClock) -> f32 {
 }
 
 get_uptime :: proc() -> f32 {
+	// Divide by 1000 to convert to seconds
 	return (cast(f32) sdl.GetTicks()) / 1000.0
 }

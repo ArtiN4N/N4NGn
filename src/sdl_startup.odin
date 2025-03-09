@@ -6,6 +6,7 @@ import "core:strings"
 import sdl "vendor:sdl3"
 import img "vendor:sdl3/image"
 
+@(deferred_in=end_sdl)
 init_sdl :: proc(game: ^Game) {
 	md := game.meta_data
 
@@ -16,10 +17,13 @@ init_sdl :: proc(game: ^Game) {
 	}
 	log("Initialized SDL.")
 
+	cstr_title := strings.clone_to_cstring(md.window_title)
 	sdl.CreateWindowAndRenderer(
-		strings.clone_to_cstring(md.window_title), md.window_width, md.window_height, md.sdl_window_flags,
+		cstr_title, md.window_width, md.window_height, md.sdl_window_flags,
 		&game.window, &game.renderer
 	)
+
+	delete(cstr_title)
 
 	if game.window == nil || game.renderer == nil {
 		log("Error creating SDL2 window or renderer. SDL error message: %s", sdl.GetError())

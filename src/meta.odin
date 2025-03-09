@@ -5,6 +5,7 @@ import "core:os"
 import "core:strings"
 import sdl "vendor:sdl3"
 
+// Just metadata for the sdl window and application.
 SDLMetaData :: struct {
     sdl_init_flags: sdl.InitFlags,
     sdl_window_flags: sdl.WindowFlags,
@@ -19,6 +20,7 @@ SDLMetaData :: struct {
 
 // Happens before SDL is init
 init_meta_data :: proc(md: ^SDLMetaData) {
+    // Remember to update this to inclue all aspects of sdl that are needed.
     md.sdl_init_flags = {.EVENTS, .VIDEO}
     md.sdl_window_flags = {  }
 

@@ -1,0 +1,6 @@
+$tile
+1,wall.png
+0,air.png
+0,exit.png
+
+$tile2

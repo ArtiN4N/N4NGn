@@ -3,65 +3,65 @@ package main
 import "core:fmt"
 import "core:os"
 import "core:strings"
+import "core:c/libc"
+import olog "core:log" 
+import "core:mem"
 import sdl "vendor:sdl3"
 
-handle_keydown_event :: proc(game: ^Game, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
-	#partial switch scan_code {
-	case .ESCAPE:
-		game.quit = true
-	case .L:
-		log("", get_uptime(), "Manual scancode key log.")
-	case .V:
-		new_vsync : i32 = 1
-		if game.meta_data.vsync == 1 { new_vsync = 0 }
-		change_meta_vsync(&game.meta_data, &game.renderer, new_vsync)
-	case .F:
-		new_fullscreen := true
-		if game.meta_data.fullscreen { new_fullscreen = false }
-		change_meta_fullscreen(&game.meta_data, &game.window, new_fullscreen)
+main :: proc() {
+	context.logger = olog.create_console_logger()
+
+	default_allocator := context.allocator
+	tracking_allocator: mem.Tracking_Allocator
+	mem.tracking_allocator_init(&tracking_allocator, default_allocator)
+	context.allocator = mem.tracking_allocator(&tracking_allocator)
+
+	reset_tracking_allocator :: proc(a: ^mem.Tracking_Allocator) -> bool {
+		err := false
+
+		for _, value in a.allocation_map {
+			fmt.printf("%v: Leaked %v bytes\n", value.location, value.size)
+			err = true
+		}
+
+		mem.tracking_allocator_clear(a)
+		return err
 	}
 
-	handle_player_input_keydown(&game.player, scan_code, key_code)
-}
+	defer {
+		if reset_tracking_allocator(&tracking_allocator) {
+			libc.getchar()
+		}
+	
+		mem.tracking_allocator_destroy(&tracking_allocator)
+	}
 
-handle_keyup_event :: proc(game: ^Game, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
-	handle_player_input_keyup(&game.player, scan_code, key_code)
-}
+	init_logs("", "special_")
+    log("Hello World!")
 
-game_handle_events :: proc(game: ^Game) {
-	for sdl.PollEvent(&game.event) {
-		#partial switch game.event.type {	
-		case .QUIT:
-			game.quit = true
-			return
+	game: Game = {}
+	// Only for pre-sdl stuff like metadata.
+	init_game(&game)
+	//fmt.printfln("%v", game.texture_sets["entity"])
+	init_sdl(&game)
 
-		case .KEY_DOWN:
-			if !game.event.key.repeat { handle_keydown_event(game, game.event.key.scancode, game.event.key.key) }
+	// Does the rest of the "init" for the game struct.
+	load_game(&game)
 
-		case .KEY_UP:
-			if !game.event.key.repeat { handle_keyup_event(game, game.event.key.scancode, game.event.key.key) }
+	for !game.quit {
+		game_loop(&game)
+
+		if len(tracking_allocator.bad_free_array) > 0 {
+			for b in tracking_allocator.bad_free_array {
+				olog.errorf("Bad free at: %v", b.location)
+			}
+
+			libc.getchar()
+			panic("Bad free detected")
 		}
 	}
-}
 
-game_update :: proc(game: ^Game) {
-	update_player_entity(&game.player, game.timing.dt)
-}
-
-game_render :: proc(game: ^Game) {
-	sdl.SetRenderDrawColor(game.renderer, 0, 0, 0, 255)
-	sdl.RenderClear(game.renderer)
-
-	sdl.SetRenderDrawColor(game.renderer, 255, 255, 255, 255)
-	sdl.RenderDebugTextFormat(game.renderer, 10, 10, "FPS = %d", game.timing.fps)
-
-	background : ^^sdl.Texture = &game.texture_sets["debug"].textures["car.bmp"]
-
-	sdl.RenderTexture(game.renderer, background^, nil, nil)
-
-	draw_player_entity(&game.player, game.renderer)
-
-	sdl.RenderPresent(game.renderer)
+	log("Goodbye World.")
 }
 
 game_loop :: proc(game: ^Game) {
@@ -78,20 +78,23 @@ game_loop :: proc(game: ^Game) {
 	//sdl.Delay(1)
 }
 
-main :: proc() {
-	init_logs("", "special_")
-    log("Hello World!")
+game_update :: proc(game: ^Game) {
+	update_player_entity(&game.player, game.timing.dt)
+}
 
-	game: Game = {}
-	init_game(&game)
-	init_sdl(&game)
+game_render :: proc(game: ^Game) {
+	sdl.SetRenderDrawColor(game.renderer, 0, 0, 0, 255)
+	sdl.RenderClear(game.renderer)
 
-	load_game(&game)
+	sdl.SetRenderDrawColor(game.renderer, 255, 255, 255, 255)
+	background : ^^sdl.Texture = &game.texture_sets["map"].textures["car.bmp"]
+	//sdl.RenderTexture(game.renderer, background^, nil, nil)
 
-	for !game.quit { game_loop(&game) }
+	draw_tilemap(game.tile_map, game.tile_info, game.renderer)
 
-	log("Goodbye World.")
+	draw_player_entity(game.player, game.renderer)
 
-	cleanup_game(&game)
-	end_sdl(&game)
+	sdl.SetRenderDrawColor(game.renderer, 0, 0, 0, 255)
+	sdl.RenderDebugTextFormat(game.renderer, 10, 10, "FPS = %d", game.timing.fps)
+	sdl.RenderPresent(game.renderer)
 }
