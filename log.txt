@@ -11,25 +11,25 @@
 0.16 @ change_meta_vsync.odin(37) -> VSync set to 1.
 0.16 @ change_meta_fullscreen.odin(44) -> Fullscreen set to false.
 0.16 @ change_meta_fullscreen.odin(52) -> Window size set to 800,800.
-0.17 @ load_texture_set.odin(35) -> Loading texture set entity
+0.16 @ load_texture_set.odin(35) -> Loading texture set entity
 0.17 @ load_texture_set.odin(50) -> Loaded texture from file assets/entity/img/teto.png.
-0.18 @ load_texture_set.odin(35) -> Loading texture set item
-0.18 @ load_texture_set.odin(50) -> Loaded texture from file assets/item/img/pick.png.
-0.19 @ load_texture_set.odin(35) -> Loading texture set map
-0.22 @ load_texture_set.odin(50) -> Loaded texture from file assets/map/img/car.bmp.
-0.22 @ load_texture_set.odin(35) -> Loading texture set tile
-0.23 @ load_texture_set.odin(50) -> Loaded texture from file assets/tile/img/air.png.
-0.24 @ load_texture_set.odin(50) -> Loaded texture from file assets/tile/img/wall.png.
-0.24 @ load_texture_set.odin(50) -> Loaded texture from file assets/tile/img/exit.png.
-49.15 @ main.odin(64) -> Goodbye World.
-49.18 @ end_sdl.odin(47) -> Cleanup successful.
-0.00 @ destroy_texture_set.odin(59) -> Destroyed exit.png texture.
-0.01 @ destroy_texture_set.odin(59) -> Destroyed air.png texture.
-0.02 @ destroy_texture_set.odin(59) -> Destroyed wall.png texture.
-0.03 @ destroy_texture_set.odin(70) -> Destroyed texture set tile
-0.04 @ destroy_texture_set.odin(59) -> Destroyed car.bmp texture.
-0.05 @ destroy_texture_set.odin(70) -> Destroyed texture set map
-0.06 @ destroy_texture_set.odin(59) -> Destroyed pick.png texture.
-0.06 @ destroy_texture_set.odin(70) -> Destroyed texture set item
-0.07 @ destroy_texture_set.odin(59) -> Destroyed teto.png texture.
-0.08 @ destroy_texture_set.odin(70) -> Destroyed texture set entity
+0.17 @ load_texture_set.odin(35) -> Loading texture set item
+0.17 @ load_texture_set.odin(50) -> Loaded texture from file assets/item/img/pick.png.
+0.17 @ load_texture_set.odin(35) -> Loading texture set map
+0.20 @ load_texture_set.odin(50) -> Loaded texture from file assets/map/img/car.bmp.
+0.20 @ load_texture_set.odin(35) -> Loading texture set tile
+0.20 @ load_texture_set.odin(50) -> Loaded texture from file assets/tile/img/air.png.
+0.20 @ load_texture_set.odin(50) -> Loaded texture from file assets/tile/img/wall.png.
+0.21 @ load_texture_set.odin(50) -> Loaded texture from file assets/tile/img/exit.png.
+1.37 @ main.odin(64) -> Goodbye World.
+1.40 @ end_sdl.odin(47) -> Cleanup successful.
+0.00 @ destroy_texture_set.odin(59) -> Destroyed air.png texture.
+0.01 @ destroy_texture_set.odin(59) -> Destroyed wall.png texture.
+0.02 @ destroy_texture_set.odin(59) -> Destroyed exit.png texture.
+0.02 @ destroy_texture_set.odin(70) -> Destroyed texture set tile
+0.03 @ destroy_texture_set.odin(59) -> Destroyed car.bmp texture.
+0.04 @ destroy_texture_set.odin(70) -> Destroyed texture set map
+0.04 @ destroy_texture_set.odin(59) -> Destroyed pick.png texture.
+0.05 @ destroy_texture_set.odin(70) -> Destroyed texture set item
+0.05 @ destroy_texture_set.odin(59) -> Destroyed teto.png texture.
+0.06 @ destroy_texture_set.odin(70) -> Destroyed texture set entity

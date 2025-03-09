@@ -112,6 +112,10 @@ update_player_entity :: proc(player: ^Entity, dt: f32) {
 draw_player_entity :: proc(player: Entity, renderer: ^sdl.Renderer) {
     sdl.SetRenderDrawColor(renderer, 255, 255, 255, sdl.ALPHA_OPAQUE)
 
+    player := player
+
+    round_decimals(&player.position.x, &player.position.y)
+
     texture_dest_size := player.texture_dest_size
     texture_dest_offset := player.texture_dest_offset
 
@@ -141,4 +145,9 @@ draw_player_entity :: proc(player: Entity, renderer: ^sdl.Renderer) {
     // debug player hitbox
     draw_hitbox(player.combat_hitbox, renderer)
     draw_hitbox(player.collision_hitbox, renderer)
+}
+
+set_player_position_grid :: proc(player: ^Entity, pos: Vector2u, g_size: u32) {
+    set_pos := Vector2f{ cast(f32) (pos.x * g_size + g_size / 2), cast(f32) (pos.y * g_size + g_size / 2)}
+    player.position = set_pos
 }

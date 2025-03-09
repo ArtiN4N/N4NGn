@@ -61,6 +61,8 @@ TileMap :: struct {
 
     // inside array is y axis
     set: [dynamic][dynamic]Tile,
+
+    player_spawn: Vector2u,
 }
 
 load_map_patterns :: proc(name: string) -> [2][16][16]Tile {
@@ -117,6 +119,9 @@ generate_random_map :: proc(tmap: ^TileMap, info: TileInfo) {
 
     patterns := load_map_patterns("basic_patterns.txt")
 
+    possible_player_spawns := make([dynamic][2]u32)
+    defer delete(possible_player_spawns)
+
     // to start, lets randomly generate map by 16x16 chunks
     for slice_x := 0; slice_x < 64; slice_x += 16 {
         for slice_y := 0; slice_y < 32; slice_y += 16 {
@@ -125,10 +130,20 @@ generate_random_map :: proc(tmap: ^TileMap, info: TileInfo) {
             for col := 0; col < 16; col += 1 {
                 for row := 0; row < 16; row += 1 {
                     tmap.set[slice_x + col][slice_y + row] = pattern[col][row]
+
+                    if slice_x == 0 && slice_y == 0 && pattern[col][row] == .BLANK && row < 15 {
+                        if pattern[col][row + 1] == .WALL {
+                            append(&possible_player_spawns, [2]u32{cast(u32)col, cast(u32)row})
+                        }
+                    }
                 }
             }
         }
     }
+
+    chosen_spawn := rand.choice(possible_player_spawns[:])
+
+    tmap.player_spawn = chosen_spawn
 }
 
 init_tilemap :: proc(tmap: ^TileMap, info: TileInfo, map_file: string = "", size : u32 = DEFAULT_TILE_SIZE) {

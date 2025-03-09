@@ -42,5 +42,8 @@ draw_hitbox :: proc(hitbox: Hitbox, renderer: ^sdl.Renderer) {
     sdl.SetRenderDrawColor(renderer, r, g, b, sdl.ALPHA_OPAQUE)
 
     box := hitbox_to_frect(hitbox)
+
+    round_decimals(&box.x, &box.y)
+
     sdl.RenderRect(renderer, &box)
 }

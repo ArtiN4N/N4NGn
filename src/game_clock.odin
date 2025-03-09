@@ -18,7 +18,7 @@ GameClock :: struct {
 // Warning: This proc happens before SDL is init
 init_game_clock :: proc(gc: ^GameClock) {
 	gc.fps = 1
-	gc.timesteps = {}
+	gc.timesteps = { 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01 }
 	gc.timestepsIndex = 0
 	gc.dt = 0.001
 	gc.lastTicks = 0
@@ -26,6 +26,7 @@ init_game_clock :: proc(gc: ^GameClock) {
 
 update_timesteps :: proc(timing: ^GameClock) {
 	// Current frame deltatime calculation
+	if (timing.lastTicks == 0) { timing.lastTicks = sdl.GetPerformanceCounter() }
 	currentTicks := sdl.GetPerformanceCounter()
 	timestep : u64 = currentTicks - timing.lastTicks
 	timing.lastTicks = currentTicks

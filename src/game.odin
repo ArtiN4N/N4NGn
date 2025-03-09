@@ -22,6 +22,8 @@ Game :: struct {
 
     tile_map: TileMap,
     tile_info: TileInfo,
+
+    view_camera: Camera
 }
 
 // Warning: this proc happens before SDL is init
@@ -53,6 +55,9 @@ load_game :: proc(game: ^Game) {
 
     init_tile_info(&game.tile_info, &game.texture_sets)
     init_tilemap(&game.tile_map, game.tile_info)
+    set_player_position_grid(&game.player, game.tile_map.player_spawn, game.tile_map.tile_size)
+
+    init_camera(&game.view_camera, game.renderer, cast(f32) game.meta_data.window_width, cast(f32) game.meta_data.window_height, &game.player.position)
 }
 
 cleanup_game :: proc(game: ^Game) {
@@ -64,4 +69,6 @@ cleanup_game :: proc(game: ^Game) {
     delete(game.texture_sets)
 
     destroy_tilemap(&game.tile_map)
+
+    destroy_camera(&game.view_camera)
 }

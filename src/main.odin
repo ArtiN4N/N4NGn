@@ -88,13 +88,23 @@ game_render :: proc(game: ^Game) {
 
 	sdl.SetRenderDrawColor(game.renderer, 255, 255, 255, 255)
 	background : ^^sdl.Texture = &game.texture_sets["map"].textures["car.bmp"]
-	//sdl.RenderTexture(game.renderer, background^, nil, nil)
+	//sdl.RenderTexture(game.renderer, background^, nil, &dest)
+
+	start_camera_render(&game.view_camera)
 
 	draw_tilemap(game.tile_map, game.tile_info, game.renderer)
 
 	draw_player_entity(game.player, game.renderer)
 
+	end_camera_render(&game.view_camera)
+
+	sdl.SetRenderDrawColor(game.renderer, 255, 255, 255, 255)
+
+	ui_rect := sdl.FRect{ 0, 0, 100, 50 }
+	sdl.RenderFillRect(game.renderer, &ui_rect)
+
 	sdl.SetRenderDrawColor(game.renderer, 0, 0, 0, 255)
 	sdl.RenderDebugTextFormat(game.renderer, 10, 10, "FPS = %d", game.timing.fps)
+	sdl.RenderDebugTextFormat(game.renderer, 10, 20, "pos = %.1f", game.player.position.x)
 	sdl.RenderPresent(game.renderer)
 }
