@@ -23,7 +23,7 @@ init_camera :: proc(camera: ^Camera, renderer: ^sdl.Renderer, width, height: f32
     camera.dest = { 0, 0, width, height }
 
     camera.cam_texture = sdl.CreateTexture(renderer, sdl.PixelFormat.RGBA8888, sdl.TextureAccess.TARGET, 3200, 3200)
-
+    sdl.SetRenderDrawBlendMode(renderer, sdl.BLENDMODE_BLEND)
     camera.anchor = anchor
 }
 
@@ -44,6 +44,9 @@ end_camera_render :: proc(camera: ^Camera) {
     anchor := camera.anchor^
 
     round_decimals(&anchor.x, &anchor.y)
+
+    //source.w /= 3
+    //source.h /= 3
 
     source.x = anchor.x - source.w / 2
     source.y = anchor.y - source.h / 2

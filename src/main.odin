@@ -79,7 +79,7 @@ game_loop :: proc(game: ^Game) {
 }
 
 game_update :: proc(game: ^Game) {
-	update_player_entity(&game.player, game.timing.dt)
+	update_player_entity(&game.player, game.tile_map, game.tile_info, game.timing.dt)
 }
 
 game_render :: proc(game: ^Game) {
@@ -94,17 +94,19 @@ game_render :: proc(game: ^Game) {
 
 	draw_tilemap(game.tile_map, game.tile_info, game.renderer)
 
-	draw_player_entity(game.player, game.renderer)
+	draw_player_entity(game.player, &game.tile_map, game.renderer)
 
 	end_camera_render(&game.view_camera)
 
 	sdl.SetRenderDrawColor(game.renderer, 255, 255, 255, 255)
 
-	ui_rect := sdl.FRect{ 0, 0, 100, 50 }
+	ui_rect := sdl.FRect{ 0, 0, 120, 70 }
 	sdl.RenderFillRect(game.renderer, &ui_rect)
 
 	sdl.SetRenderDrawColor(game.renderer, 0, 0, 0, 255)
 	sdl.RenderDebugTextFormat(game.renderer, 10, 10, "FPS = %d", game.timing.fps)
 	sdl.RenderDebugTextFormat(game.renderer, 10, 20, "pos = %.1f", game.player.position.x)
+	tile := vector_to_tile_position(game.player.position, game.tile_map)
+	sdl.RenderDebugTextFormat(game.renderer, 10, 30, "tiles = %d,%d", tile.x, tile.y)
 	sdl.RenderPresent(game.renderer)
 }

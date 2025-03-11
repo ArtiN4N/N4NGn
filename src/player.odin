@@ -3,6 +3,7 @@ package main
 import "core:fmt"
 import "core:os"
 import "core:strings"
+import "core:slice"
 import sdl "vendor:sdl3"
 import img "vendor:sdl3/image"
 
@@ -37,19 +38,8 @@ init_player_entity :: proc(player: ^Entity, texture: ^^sdl.Texture) {
     player.jump_duration = 1
 
     // Again, should be manually finetuned
-    player.combat_hitbox = {
-        position = { -12, -12 },
-        size = { 25, 25 },
-        anchor = &player.position,
-        type = .COMBAT
-    }
-
-    player.collision_hitbox = {
-        position = { -15, -15 },
-        size = { 30, 30 },
-        anchor = &player.position,
-        type = .COLLISION
-    }
+    init_hitbox(&player.combat_hitbox, -12, -12, 25, 25, &player.position, .COMBAT)
+    init_hitbox(&player.collision_hitbox, -15, -15, 30, 30, &player.position, .COLLISION)
 
     player.collision_tier = 0
 }
@@ -90,11 +80,13 @@ handle_player_input_keyup :: proc(player: ^Entity, scan_code: sdl.Scancode, key_
     }
 }
 
-update_player_entity :: proc(player: ^Entity, dt: f32) {
+update_player_entity :: proc(player: ^Entity, tmap: TileMap, tinfo: TileInfo, dt: f32) {
     move_velocity := player.move_velocity
-    move_velocity.y = 0
+    //move_velocity.y = 0
     if player.is_walking { move_velocity.x *= player.walk_speed }
     else { move_velocity.x *= player.run_speed }
+
+    move_velocity.y *= player.run_speed
 
     if move_velocity.x > 0 {
         player.facing_right = true
@@ -105,16 +97,24 @@ update_player_entity :: proc(player: ^Entity, dt: f32) {
     update_velocity := player.velocity + move_velocity
     update_acceleration := player.acceleration + player.move_acceleration
 
-    player.velocity += update_acceleration * dt
+    update_velocity += update_acceleration * dt
+
+    old_position := player.position
+
     player.position += update_velocity * dt
+
+    update_hitbox(&player.collision_hitbox)
+    update_hitbox(&player.combat_hitbox)
+
+    player.position = tilemap_collision_correction_split_axis(player.collision_hitbox, old_position, player.position, update_velocity * dt, tmap, tinfo, player.collision_tier)
 }
 
-draw_player_entity :: proc(player: Entity, renderer: ^sdl.Renderer) {
+draw_player_entity :: proc(player: Entity, tmap: ^TileMap, renderer: ^sdl.Renderer) {
     sdl.SetRenderDrawColor(renderer, 255, 255, 255, sdl.ALPHA_OPAQUE)
 
     player := player
 
-    round_decimals(&player.position.x, &player.position.y)
+    //round_decimals(&player.position.x, &player.position.y)
 
     texture_dest_size := player.texture_dest_size
     texture_dest_offset := player.texture_dest_offset
@@ -145,6 +145,24 @@ draw_player_entity :: proc(player: Entity, renderer: ^sdl.Renderer) {
     // debug player hitbox
     draw_hitbox(player.combat_hitbox, renderer)
     draw_hitbox(player.collision_hitbox, renderer)
+
+    // debug occupied tiles
+    occupied := make([dynamic]Vector2u)
+    defer delete(occupied)
+
+    for vec in player.collision_hitbox.corners {
+        u_vec := vector_to_tile_position(vec, tmap^)
+        append(&occupied, u_vec)
+    }
+
+    sdl.SetRenderDrawColor(renderer, 0, 0, 255, 100)
+    rect : sdl.FRect = { 0, 0, cast(f32) tmap.tile_size, cast(f32) tmap.tile_size }
+    for vec in occupied {
+        rect.x = (cast(f32) vec.x) * (cast(f32) tmap.tile_size)
+        rect.y = (cast(f32) vec.y) * (cast(f32) tmap.tile_size)
+
+        //sdl.RenderFillRect(renderer, &rect)
+    }
 }
 
 set_player_position_grid :: proc(player: ^Entity, pos: Vector2u, g_size: u32) {
