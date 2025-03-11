@@ -1,4 +1,5 @@
 bin/
 *.exe
 *.bin
+*_log.txt
 ols.json
