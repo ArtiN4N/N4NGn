@@ -6,6 +6,8 @@ import "core:strings"
 import sdl "vendor:sdl3"
 import img "vendor:sdl3/image"
 
+DEFAULT_WORLD_GRAVITY :: 880
+
 Game :: struct {
     window: ^sdl.Window,
     renderer: ^sdl.Renderer,
@@ -23,7 +25,10 @@ Game :: struct {
     tile_map: TileMap,
     tile_info: TileInfo,
 
-    view_camera: Camera
+    view_camera: Camera,
+
+    // fancy gravity basically
+    global_entity_acceleration: Vector2f,
 }
 
 // Warning: this proc happens before SDL is init
@@ -42,6 +47,8 @@ init_game :: proc(game: ^Game) {
 
     // Manual procedures are used to create texture sets
     init_texture_sets(&game.texture_sets)
+
+    game.global_entity_acceleration.y = DEFAULT_WORLD_GRAVITY
 }
 
 load_game :: proc(game: ^Game) {

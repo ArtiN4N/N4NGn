@@ -30,23 +30,26 @@ Entity :: struct {
     // movement vectors should be seperated from total vectors
     // allows for entitys to be moving one way, while some force is pushing them the other way
     move_velocity: Vector2f,
+    global_velocity: Vector2f,
     move_acceleration: Vector2f,
 
     // generally used for combat or spawning purposes
     // aka an entity facing right should never shoot bullets to its left (unless its supposed to)
     facing_right: bool,
-
+    grounded: bool,
+    grabbing: bool,
+    grabbing_target_tile: Vector2u,
+    grounded_timer: f32,
     is_walking: bool,
 
     walk_speed: f32,
     run_speed: f32,
 
-    // jump speed can be determined using how high the entity jumps, and for how long it should be in the air
-    jump_height: f32,
-    jump_duration: f32,
+    jump_vel : f32,
 
     combat_hitbox: Hitbox,
     collision_hitbox: Hitbox,
+    grab_hitbox: Hitbox,
 
     // if an entities collision tier is lower than a tile's, they collide with each other
     collision_tier: u8,

@@ -4,6 +4,7 @@ import "core:fmt"
 import "core:os"
 import "core:strings"
 import "core:slice"
+import "core:math"
 import sdl "vendor:sdl3"
 import img "vendor:sdl3/image"
 
@@ -19,7 +20,7 @@ init_player_entity :: proc(player: ^Entity, texture: ^^sdl.Texture) {
     // Doesn't have to be exact. In fact, a sprite that is bigger than its hitbox is ideal
     player.texture_dest_size = { 40, 60 }
     // Setting this to the negative of half the dest texture size makes it so that the texture is drawn with the players real position in the center
-    player.texture_dest_offset = { -20, -45 }
+    player.texture_dest_offset = { -20, -40 }
 
     // Starting position. Should be manually overwritten by level manager
     player.position = { 100, 300 }
@@ -34,26 +35,42 @@ init_player_entity :: proc(player: ^Entity, texture: ^^sdl.Texture) {
     player.walk_speed = 200
     player.run_speed = 400
 
-    player.jump_height = 200
-    player.jump_duration = 1
+    player.jump_vel = -500
 
     // Again, should be manually finetuned
     init_hitbox(&player.combat_hitbox, -12, -12, 25, 25, &player.position, .COMBAT)
     init_hitbox(&player.collision_hitbox, -15, -15, 30, 30, &player.position, .COLLISION)
+    init_hitbox(&player.grab_hitbox, -45, -25, 90, 4, &player.position, .GRAB)
 
     player.collision_tier = 0
+
+    player.grounded_timer = 1.0
+
+    player.grounded = false
+
+    player.grabbing = false
+    player.grabbing_target_tile = Vector2u{0, 0}
 }
 
 handle_player_input_keydown :: proc(player: ^Entity, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
     #partial switch scan_code {
         case .W:
-            player.move_velocity.y -= 1
+            player.grabbing = false
+            //player.move_velocity.y -= 1
         case .S:
-            player.move_velocity.y += 1
+            player.grabbing = false
+            //player.move_velocity.y += 1
         case .A:
             player.move_velocity.x -= 1
+            player.grabbing = false
         case .D:
             player.move_velocity.x += 1
+            player.grabbing = false
+        case .SPACE:
+            if !player.grounded && player.grounded_timer >= 0.1 && !player.grabbing { break }
+            player.global_velocity.y = player.jump_vel
+            player.grounded_timer = 1.0
+            player.grabbing = false
     }
 
     switch key_code {
@@ -64,10 +81,10 @@ handle_player_input_keydown :: proc(player: ^Entity, scan_code: sdl.Scancode, ke
 
 handle_player_input_keyup :: proc(player: ^Entity, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
     #partial switch scan_code {
-        case .W:
-            player.move_velocity.y += 1
-        case .S:
-            player.move_velocity.y -= 1
+        //case .W:
+            //player.move_velocity.y += 1
+        //case .S:
+            //player.move_velocity.y -= 1
         case .A:
             player.move_velocity.x += 1
         case .D:
@@ -80,13 +97,12 @@ handle_player_input_keyup :: proc(player: ^Entity, scan_code: sdl.Scancode, key_
     }
 }
 
-update_player_entity :: proc(player: ^Entity, tmap: TileMap, tinfo: TileInfo, dt: f32) {
+update_player_entity :: proc(player: ^Entity, global_entity_acceleration: Vector2f, tmap: TileMap, tinfo: TileInfo, dt: f32) {
+    player.grounded_timer += dt
     move_velocity := player.move_velocity
     //move_velocity.y = 0
     if player.is_walking { move_velocity.x *= player.walk_speed }
     else { move_velocity.x *= player.run_speed }
-
-    move_velocity.y *= player.run_speed
 
     if move_velocity.x > 0 {
         player.facing_right = true
@@ -94,19 +110,61 @@ update_player_entity :: proc(player: ^Entity, tmap: TileMap, tinfo: TileInfo, dt
         player.facing_right = false
     }
 
-    update_velocity := player.velocity + move_velocity
-    update_acceleration := player.acceleration + player.move_acceleration
-
-    update_velocity += update_acceleration * dt
-
     old_position := player.position
 
-    player.position += update_velocity * dt
+    if !player.grounded && !player.grabbing {
+        player.global_velocity += global_entity_acceleration * dt
+    }
+
+    if !player.grounded && player.global_velocity.y > 0 && player.move_velocity.x != 0 {
+        player.grabbing, player.grabbing_target_tile = tilemap_check_entity_grab(player.grab_hitbox, tmap, tinfo, player.collision_tier, player.facing_right)
+        if player.grabbing { player.global_velocity.y = 0 }
+    }
+
+    player.velocity += player.acceleration * dt + player.move_acceleration * dt
+    player.position += player.velocity * dt + move_velocity * dt + player.global_velocity * dt
 
     update_hitbox(&player.collision_hitbox)
     update_hitbox(&player.combat_hitbox)
 
-    player.position = tilemap_collision_correction_split_axis(player.collision_hitbox, old_position, player.position, update_velocity * dt, tmap, tinfo, player.collision_tier)
+    update_velocity := player.velocity + move_velocity + player.global_velocity
+    
+    fmt.printfln("\n\nbottom right corner = %v", player.collision_hitbox.corners[.SE])
+    fmt.printfln("playerpos = %v", player.position)
+
+
+    corrected_pos, collided_x, collided_y := tilemap_collision_correction_split_axis(player.collision_hitbox, old_position, player.position, update_velocity, tmap, tinfo, player.collision_tier, dt)
+    player.position = corrected_pos
+
+    fmt.printfln("corrected = %v", corrected_pos)
+
+    if collided_x {
+        player.velocity.x = 0
+    }
+
+    if collided_y {
+        player.velocity.y = 0
+        player.global_velocity.y = 0
+    }
+
+    update_hitbox(&player.collision_hitbox)
+    update_hitbox(&player.combat_hitbox)
+    update_hitbox(&player.grab_hitbox)
+
+    old_grounded := player.grounded
+
+    player.grounded = tilemap_check_entity_grounded(player.collision_hitbox, tmap, tinfo, player.collision_tier)
+    if player.grounded || player.grabbing {
+        player.global_velocity = { 0, 0 }
+    }
+
+    if !player.grounded && old_grounded && player.global_velocity.y >= 0 {
+        player.grounded_timer = 0.0
+    }
+
+    // grab:
+    // when not grounded and falling and facing right and not holding down
+    //      check hitbox with top of tiles to the right
 }
 
 draw_player_entity :: proc(player: Entity, tmap: ^TileMap, renderer: ^sdl.Renderer) {
@@ -138,15 +196,18 @@ draw_player_entity :: proc(player: Entity, tmap: ^TileMap, renderer: ^sdl.Render
 
     position_rect := sdl.FRect{ player.position.x - 3, player.position.y - 3, 6, 6 }
 
+    
     // debug player real position
     sdl.SetRenderDrawColor(renderer, 0, 0, 255, sdl.ALPHA_OPAQUE)
     sdl.RenderFillRect(renderer, &position_rect)
-
+    
     // debug player hitbox
     draw_hitbox(player.combat_hitbox, renderer)
     draw_hitbox(player.collision_hitbox, renderer)
+    draw_hitbox(player.grab_hitbox, renderer)
 
     // debug occupied tiles
+    /*
     occupied := make([dynamic]Vector2u)
     defer delete(occupied)
 
@@ -162,7 +223,7 @@ draw_player_entity :: proc(player: Entity, tmap: ^TileMap, renderer: ^sdl.Render
         rect.y = (cast(f32) vec.y) * (cast(f32) tmap.tile_size)
 
         //sdl.RenderFillRect(renderer, &rect)
-    }
+    }*/
 }
 
 set_player_position_grid :: proc(player: ^Entity, pos: Vector2u, g_size: u32) {

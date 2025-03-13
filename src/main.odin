@@ -79,7 +79,7 @@ game_loop :: proc(game: ^Game) {
 }
 
 game_update :: proc(game: ^Game) {
-	update_player_entity(&game.player, game.tile_map, game.tile_info, game.timing.dt)
+	update_player_entity(&game.player, game.global_entity_acceleration, game.tile_map, game.tile_info, game.timing.dt)
 }
 
 game_render :: proc(game: ^Game) {
@@ -106,7 +106,6 @@ game_render :: proc(game: ^Game) {
 	sdl.SetRenderDrawColor(game.renderer, 0, 0, 0, 255)
 	sdl.RenderDebugTextFormat(game.renderer, 10, 10, "FPS = %d", game.timing.fps)
 	sdl.RenderDebugTextFormat(game.renderer, 10, 20, "pos = %.1f", game.player.position.x)
-	tile := vector_to_tile_position(game.player.position, game.tile_map)
-	sdl.RenderDebugTextFormat(game.renderer, 10, 30, "tiles = %d,%d", tile.x, tile.y)
+	//sdl.RenderDebugTextFormat(game.renderer, 10, 30, "vel = %d", game.player.velocity.y)
 	sdl.RenderPresent(game.renderer)
 }

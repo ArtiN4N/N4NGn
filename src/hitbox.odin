@@ -6,7 +6,7 @@ import "core:strings"
 import sdl "vendor:sdl3"
 import img "vendor:sdl3/image"
 
-HitboxType :: enum{ COMBAT, COLLISION }
+HitboxType :: enum{ COMBAT, COLLISION, GRAB }
 
 Corners :: enum{ NW = 0, NE, SE, SW }
 
@@ -16,6 +16,7 @@ Hitbox :: struct {
     anchor: ^Vector2f, // can be nil
     type: HitboxType,
     corners: [Corners]Vector2f,
+    last_facing_right: bool,
 }
 
 init_hitbox :: proc(hb: ^Hitbox, x, y, w, h: f32, anchor: ^Vector2f, type: HitboxType) {
@@ -23,6 +24,7 @@ init_hitbox :: proc(hb: ^Hitbox, x, y, w, h: f32, anchor: ^Vector2f, type: Hitbo
     hb.size = Vector2f{ w, h }
     hb.anchor = anchor
     hb.type = type
+    hb.last_facing_right = true
 
     hb.corners = {
         .NW = Vector2f{ x, y },
@@ -47,7 +49,14 @@ hitbox_to_frect :: proc(hitbox: Hitbox) -> sdl.FRect {
     }
 }
 
-update_hitbox :: proc(hitbox: ^Hitbox) {
+update_hitbox :: proc(hitbox: ^Hitbox, facing_right: bool = true) {
+    if !facing_right && hitbox.last_facing_right {
+        hitbox.last_facing_right = false
+        hitbox.position.x *= -1
+    } else if facing_right && !hitbox.last_facing_right {
+        hitbox.last_facing_right = true
+        hitbox.position.x *= -1
+    }
     x := hitbox.position.x
     y := hitbox.position.y
     w := hitbox.size.x
@@ -66,8 +75,14 @@ update_hitbox :: proc(hitbox: ^Hitbox) {
     }
 }
 
-hitbox_corners_with_position :: proc(hitbox: Hitbox, position: Vector2f) -> [Corners]Vector2f {
-    x := hitbox.position.x + position.x
+hitbox_corners_with_position :: proc(hitbox: Hitbox, position: Vector2f, facing_right: bool = true) -> [Corners]Vector2f {
+    h_pos_x := hitbox.position.x
+
+    if !facing_right {
+        h_pos_x *= -1
+    }
+
+    x := h_pos_x + position.x
     y := hitbox.position.y + position.y
     w := hitbox.size.x
     h := hitbox.size.y
@@ -87,6 +102,8 @@ draw_hitbox :: proc(hitbox: Hitbox, renderer: ^sdl.Renderer) {
         r = 255
     case .COLLISION:
         b = 255
+    case .GRAB:
+        g = 255
     }
 
     sdl.SetRenderDrawColor(renderer, r, g, b, sdl.ALPHA_OPAQUE)
