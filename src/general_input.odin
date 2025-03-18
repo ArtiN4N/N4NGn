@@ -16,15 +16,9 @@ handle_keydown_event :: proc(game: ^Game, scan_code: sdl.Scancode, key_code: sdl
 	case .L:
 		log("", get_uptime(), "Manual scancode key log.")
 	case .V:
-		// toggle vsync
-		new_vsync : i32 = 1
-		if game.meta_data.vsync == 1 { new_vsync = 0 }
-		change_meta_vsync(&game.meta_data, &game.renderer, new_vsync)
+		toggle_vsync(&game.meta_data, &game.renderer)
 	case .F:
-		// toggle fullscreen
-		new_fullscreen := true
-		if game.meta_data.fullscreen { new_fullscreen = false }
-		change_meta_fullscreen(&game.meta_data, &game.window, new_fullscreen)
+		toggle_fullscreen(&game.meta_data, &game.window)
 	}
 
 	switch key_code {

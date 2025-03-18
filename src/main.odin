@@ -40,20 +40,20 @@ main :: proc() {
     log("Hello World!")
 
 	game: Game = {}
-	// Only for pre-sdl stuff like metadata.
-	init_game(&game)
-	//fmt.printfln("%v", game.texture_sets["entity"])
+	pre_sdl_init(&game)
 	init_sdl(&game)
+	init_game(&game)
+	init_load_game(&game)
 
-	// Does the rest of the "init" for the game struct.
-	load_game(&game)
+	defer end_sdl(&game)
+	defer cleanup_game(&game)
 
 	for !game.quit {
 		game_loop(&game)
 
 		if len(tracking_allocator.bad_free_array) > 0 {
 			for b in tracking_allocator.bad_free_array {
-				olog.errorf("Bad free at: %v", b.location)
+				log("Bad free at: %v", b.location)
 			}
 
 			libc.getchar()
@@ -70,11 +70,8 @@ game_loop :: proc(game: ^Game) {
 	if (game.timing.timestepsIndex == 0) { game.timing.fps = cast(int) (1.0 / game.timing.dt) }
 
 	game_handle_events(game)
-	
 	game_update(game)
-
 	game_render(game)
-
 	//sdl.Delay(1)
 }
 
@@ -90,22 +87,17 @@ game_render :: proc(game: ^Game) {
 	background : ^^sdl.Texture = &game.texture_sets["map"].textures["car.bmp"]
 	//sdl.RenderTexture(game.renderer, background^, nil, &dest)
 
-	start_camera_render(&game.view_camera)
+	//start_camera_render(&game.view_camera)
+	draw_tilemap(game.tile_map, game.tile_info, game.view_camera, game.renderer)
+	draw_player_entity(game.player, game.view_camera, game.renderer)
 
-	draw_tilemap(game.tile_map, game.tile_info, game.renderer)
-
-	draw_player_entity(game.player, &game.tile_map, game.renderer)
-
-	end_camera_render(&game.view_camera)
+	//end_camera_render(&game.view_camera)
 
 	sdl.SetRenderDrawColor(game.renderer, 255, 255, 255, 255)
-
 	ui_rect := sdl.FRect{ 0, 0, 120, 70 }
 	sdl.RenderFillRect(game.renderer, &ui_rect)
 
 	sdl.SetRenderDrawColor(game.renderer, 0, 0, 0, 255)
-	sdl.RenderDebugTextFormat(game.renderer, 10, 10, "FPS = %d", game.timing.fps)
-	sdl.RenderDebugTextFormat(game.renderer, 10, 20, "pos = %.1f", game.player.position.x)
 	//sdl.RenderDebugTextFormat(game.renderer, 10, 30, "vel = %d", game.player.velocity.y)
 	sdl.RenderPresent(game.renderer)
 }

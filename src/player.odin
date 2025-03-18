@@ -38,9 +38,9 @@ init_player_entity :: proc(player: ^Entity, texture: ^^sdl.Texture) {
     player.jump_vel = -500
 
     // Again, should be manually finetuned
-    init_hitbox(&player.combat_hitbox, -12, -12, 25, 25, &player.position, .COMBAT)
-    init_hitbox(&player.collision_hitbox, -15, -15, 30, 30, &player.position, .COLLISION)
-    init_hitbox(&player.grab_hitbox, -45, -25, 90, 4, &player.position, .GRAB)
+    init_hitbox(&player.combat_hitbox, -12, -12, 25, 25, &player.discrete_position, .COMBAT)
+    init_hitbox(&player.collision_hitbox, -15, -15, 30, 30, &player.discrete_position, .COLLISION)
+    init_hitbox(&player.grab_hitbox, -45, -25, 90, 4, &player.discrete_position, .GRAB)
 
     player.collision_tier = 0
 
@@ -49,7 +49,7 @@ init_player_entity :: proc(player: ^Entity, texture: ^^sdl.Texture) {
     player.grounded = false
 
     player.grabbing = false
-    player.grabbing_target_tile = Vector2u{0, 0}
+    player.grabbing_target_tile = TilePoint{0, 0}
 }
 
 handle_player_input_keydown :: proc(player: ^Entity, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
@@ -97,7 +97,7 @@ handle_player_input_keyup :: proc(player: ^Entity, scan_code: sdl.Scancode, key_
     }
 }
 
-update_player_entity :: proc(player: ^Entity, global_entity_acceleration: Vector2f, tmap: TileMap, tinfo: TileInfo, dt: f32) {
+update_player_entity :: proc(player: ^Entity, global_entity_acceleration: sdl.FPoint, tmap: TileMap, tinfo: TileInfo, dt: f32) {
     player.grounded_timer += dt
     move_velocity := player.move_velocity
     //move_velocity.y = 0
@@ -128,15 +128,9 @@ update_player_entity :: proc(player: ^Entity, global_entity_acceleration: Vector
     update_hitbox(&player.combat_hitbox)
 
     update_velocity := player.velocity + move_velocity + player.global_velocity
-    
-    fmt.printfln("\n\nbottom right corner = %v", player.collision_hitbox.corners[.SE])
-    fmt.printfln("playerpos = %v", player.position)
-
 
     corrected_pos, collided_x, collided_y := tilemap_collision_correction_split_axis(player.collision_hitbox, old_position, player.position, update_velocity, tmap, tinfo, player.collision_tier, dt)
     player.position = corrected_pos
-
-    fmt.printfln("corrected = %v", corrected_pos)
 
     if collided_x {
         player.velocity.x = 0
@@ -162,12 +156,14 @@ update_player_entity :: proc(player: ^Entity, global_entity_acceleration: Vector
         player.grounded_timer = 0.0
     }
 
+    player.discrete_position = sdl.Point{ cast(i32) player.position.x, cast(i32) player.position.y }
+
     // grab:
     // when not grounded and falling and facing right and not holding down
     //      check hitbox with top of tiles to the right
 }
 
-draw_player_entity :: proc(player: Entity, tmap: ^TileMap, renderer: ^sdl.Renderer) {
+draw_player_entity :: proc(player: Entity, camera: Camera, renderer: ^sdl.Renderer) {
     sdl.SetRenderDrawColor(renderer, 255, 255, 255, sdl.ALPHA_OPAQUE)
 
     player := player
@@ -182,33 +178,34 @@ draw_player_entity :: proc(player: Entity, tmap: ^TileMap, renderer: ^sdl.Render
         texture_dest_offset.x *= -1
     }
 
-    src_rect := sdl.FRect{
+    src_rect := sdl.Rect{
         player.texture_src_position.x, player.texture_src_position.y,
         player.texture_src_size.x, player.texture_src_size.y,
     }
 
-    dest_rect := sdl.FRect{
-        player.position.x + texture_dest_offset.x, player.position.y + texture_dest_offset.y,
+    dest_rect := sdl.Rect{
+        player.discrete_position.x + texture_dest_offset.x, player.discrete_position.y + texture_dest_offset.y,
         texture_dest_size.x, texture_dest_size.y,
     }
 
-    sdl.RenderTexture(renderer, player.texture^, &src_rect, &dest_rect)
+    //sdl.RenderTexture(renderer, player.texture^, &src_rect, &dest_rect)
+    render_texture_via_camera(camera, renderer, player.texture^, &src_rect, &dest_rect)
 
     position_rect := sdl.FRect{ player.position.x - 3, player.position.y - 3, 6, 6 }
 
     
     // debug player real position
-    sdl.SetRenderDrawColor(renderer, 0, 0, 255, sdl.ALPHA_OPAQUE)
-    sdl.RenderFillRect(renderer, &position_rect)
+    //sdl.SetRenderDrawColor(renderer, 0, 0, 255, sdl.ALPHA_OPAQUE)
+    //sdl.RenderFillRect(renderer, &position_rect)
     
     // debug player hitbox
-    draw_hitbox(player.combat_hitbox, renderer)
-    draw_hitbox(player.collision_hitbox, renderer)
-    draw_hitbox(player.grab_hitbox, renderer)
+    //draw_hitbox(player.combat_hitbox, renderer)
+    //draw_hitbox(player.collision_hitbox, renderer)
+    if player.grabbing { draw_hitbox(player.grab_hitbox, renderer) } 
 
-    // debug occupied tiles
-    /*
-    occupied := make([dynamic]Vector2u)
+    /*// debug occupied tiles
+    
+    occupied := make([dynamic]TilePoint)
     defer delete(occupied)
 
     for vec in player.collision_hitbox.corners {
@@ -226,7 +223,7 @@ draw_player_entity :: proc(player: Entity, tmap: ^TileMap, renderer: ^sdl.Render
     }*/
 }
 
-set_player_position_grid :: proc(player: ^Entity, pos: Vector2u, g_size: u32) {
-    set_pos := Vector2f{ cast(f32) (pos.x * g_size + g_size / 2), cast(f32) (pos.y * g_size + g_size / 2)}
+set_player_position_grid :: proc(player: ^Entity, pos: TilePoint, g_size: u32) {
+    set_pos := sdl.FPoint{ cast(f32) (pos.x * g_size + g_size / 2), cast(f32) (pos.y * g_size + g_size / 2)}
     player.position = set_pos
 }

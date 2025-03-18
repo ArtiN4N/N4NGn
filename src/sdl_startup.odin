@@ -6,7 +6,7 @@ import "core:strings"
 import sdl "vendor:sdl3"
 import img "vendor:sdl3/image"
 
-@(deferred_in=end_sdl)
+// Global INIT 2
 init_sdl :: proc(game: ^Game) {
 	md := game.meta_data
 
@@ -34,17 +34,20 @@ init_sdl :: proc(game: ^Game) {
 	log("Initialized SDL window.")
 	log("Initialized SDL renderer.")
 
-	change_meta_vsync(&game.meta_data, &game.renderer, 1)
-	change_meta_fullscreen(&game.meta_data, &game.window, false)
+	set_vsync(&game.meta_data, &game.renderer, 1)
+	set_fullscreen(&game.meta_data, &game.window, false)
 
-	return
+	sdl.SetRenderDrawBlendMode(game.renderer, sdl.BLENDMODE_BLEND)
+
+	log("Finished global init 2.")
 }
 
+// global shutdown 2
 end_sdl :: proc(game: ^Game) {
 	sdl.DestroyRenderer(game.renderer) 
 	sdl.DestroyWindow(game.window)
 
-	log("Cleanup successful.")
+	log("Finished global shutdown 2.")
 
 	sdl.Quit()
 }

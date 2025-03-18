@@ -4,58 +4,72 @@ import "core:fmt"
 import "core:os"
 import "core:strings"
 import sdl "vendor:sdl3"
-import img "vendor:sdl3/image"
 
+// A camera has a view of the game's logic space.
+// It keeps a pointer to a vector as its anchor. This anchor is the center of the camera.
+// The cameras view is a source rectangle, using the sum of its source offset as its position,
+// and its source size as its size.
 Camera :: struct {
-    source: sdl.FRect,
-    dest: sdl.FRect,
-
-    cam_texture: ^sdl.Texture,
-    renderer: ^sdl.Renderer,
-
-    anchor: ^Vector2f
+    size: sdl.Point,
+    offset: sdl.Point,
+    anchor: ^sdl.Point
 }
 
-init_camera :: proc(camera: ^Camera, renderer: ^sdl.Renderer, width, height: f32, anchor: ^Vector2f) {
-    camera.renderer = renderer
-
-    camera.source = { 0, 0, width, height }
-    camera.dest = { 0, 0, width, height }
-
-    camera.cam_texture = sdl.CreateTexture(renderer, sdl.PixelFormat.RGBA8888, sdl.TextureAccess.TARGET, 3200, 3200)
-    sdl.SetRenderDrawBlendMode(renderer, sdl.BLENDMODE_BLEND)
+// By default, the offset of the camera is the negative of half its size.
+// Logically, this means the camera's anchor is in the center of the camera.
+// A custom offset can be applied, which is added on top of this default size-based offset.
+create_camera :: proc(width, height: i32, anchor: ^sdl.Point, offset: sdl.Point = POINT_ZERO) -> (camera: Camera) {
+    camera.size = { width, height }
+    camera.offset = { -width / 2, -height / 2 } + offset
     camera.anchor = anchor
+
+    log("Created camera.")
+
+    return
 }
 
-destroy_camera :: proc(camera: ^Camera) {
-    sdl.DestroyTexture(camera.cam_texture)
+get_camera_real_position :: proc(cam: Camera) -> sdl.Point {
+    return cam.offset + cam.anchor^
 }
 
-start_camera_render :: proc(camera: ^Camera) {
-    sdl.SetRenderTarget(camera.renderer, camera.cam_texture)
-    sdl.SetRenderDrawColor(camera.renderer, 0, 0, 0, 0)
-    sdl.RenderClear(camera.renderer)
+get_camera_real_rectangle :: proc(cam: Camera) -> sdl.Rect {
+    pos := get_camera_real_position(cam)
+    return sdl.Rect{ pos.x, pos.y, cam.size.x, cam.size.y}
 }
 
-end_camera_render :: proc(camera: ^Camera) {
+is_point_in_camera :: proc(cam: Camera, pos: sdl.Point) -> bool {
+    rect := get_camera_real_rectangle(cam)
+    return sdl.PointInRect(pos, rect)
+}
 
-    source := camera.source
+is_rectangle_in_camera :: proc(cam: Camera, rect: sdl.Rect) -> bool {
+    points := get_rectangle_points(rect)
+    
+    return sdl.GetRectEnclosingPoints(raw_data(&points), 4, get_camera_real_rectangle(cam), nil)
+}
 
-    anchor := camera.anchor^
+// Does an offset to the texture to be drawn before rendering, translating it into the screen.
+// Texture is drawn as if there is an actual camera moving around the logical world.
+render_texture_via_camera :: proc(cam: Camera, renderer: ^sdl.Renderer, tex: ^sdl.Texture, tex_src, tex_dest: ^sdl.Rect) {
+    tex_src, tex_dest := tex_src, tex_dest
 
-    round_decimals(&anchor.x, &anchor.y)
+    real_pos := get_camera_real_position(cam)
+    rect_add_point(tex_dest, -real_pos)
 
-    //source.w /= 3
-    //source.h /= 3
+    fsrc := sdl.FRect{}
+    fdest := sdl.FRect{}
 
-    source.x = anchor.x - source.w / 2
-    source.y = anchor.y - source.h / 2
+    draw_src : ^sdl.FRect = nil
+    draw_dest : ^sdl.FRect = nil
 
-    if source.x < 0 { source.x = 0 }
-    if source.x > cast(f32) camera.cam_texture.w - source.w { source.x = cast(f32) camera.cam_texture.w -source.w }
-    if source.y < 0 { source.y = 0 }
-    if source.y > cast(f32) camera.cam_texture.h - source.h { source.y = cast(f32) camera.cam_texture.h - source.h }
+    if tex_src != nil {
+        fsrc = rect_to_frect(tex_src^)
+        draw_src = &fsrc
+    }
+    if tex_dest != nil {
+        fdest = rect_to_frect(tex_dest^)
+        draw_dest = &fdest
+    }
 
-    sdl.SetRenderTarget(camera.renderer, nil)
-    sdl.RenderTexture(camera.renderer, camera.cam_texture, &source, &camera.dest)
+    sdl.RenderTexture(renderer, tex, draw_src, draw_dest)
 }

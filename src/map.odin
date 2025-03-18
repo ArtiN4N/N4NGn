@@ -65,7 +65,7 @@ TileMap :: struct {
     // inside array is y axis
     set: [dynamic][dynamic]Tile,
 
-    player_spawn: Vector2u,
+    player_spawn: TilePoint,
 }
 
 load_map_patterns :: proc(name: string) -> [2][16][16]Tile {
@@ -174,46 +174,58 @@ destroy_tilemap :: proc(tmap: ^TileMap) {
     delete(tmap.set)
 }
 
-vector_to_tile_position :: proc(position: Vector2f, tmap: TileMap) -> Vector2u {
+pointi_to_tile_position :: proc(position: sdl.Point, tmap: TileMap) -> TilePoint {
     tile_pos := position
 
-    tile_pos /= cast(f32) tmap.tile_size
+    tile_pos /= cast(i32) tmap.tile_size
 
-    ret : Vector2u = { cast(u32) math.floor_f32(tile_pos.x), cast(u32) math.floor_f32(tile_pos.y)  }
+    ret : TilePoint = { cast(u32) tile_pos.x, cast(u32) tile_pos.y }
 
     return ret
 }
 
-line_collide_tile :: proc(line: linef, tile_pos: Vector2u, tile_size: u32) -> bool {
+pointf_to_tile_position :: proc(position: sdl.FPoint, tmap: TileMap) -> TilePoint {
+    tile_pos := position
 
-    x1 : f32 = cast(f32) tile_pos.x * cast(f32) tile_size
-    y1 : f32 = cast(f32) tile_pos.y * cast(f32) tile_size
-    x2 : f32 = x1 + cast(f32) tile_size
-    y2 : f32 = y1 + cast(f32) tile_size
+    tile_pos /= cast(f32) tmap.tile_size
+
+    ret : TilePoint = { cast(u32) math.floor_f32(tile_pos.x), cast(u32) math.floor_f32(tile_pos.y) }
+
+    return ret
+}
+
+point_to_tile_position :: proc{ pointi_to_tile_position, pointf_to_tile_position }
+
+line_collide_tile :: proc(line: Line, tile_pos: TilePoint, tile_size: u32) -> bool {
+
+    x1 := cast(i32) (tile_pos.x * tile_size)
+    y1 := cast(i32) (tile_pos.y * tile_size)
+    x2 := x1 + cast(i32) tile_size
+    y2 := y1 + cast(i32) tile_size
 
     // if a line is within the tile itself
     p1_inside := line.p1.x > x1 && line.p1.y > y1 && line.p1.x < x2 && line.p1.y < y2
     p2_inside := line.p2.x > x1 && line.p2.y > y1 && line.p2.x < x2 && line.p2.y < y2
     if p1_inside || p2_inside { return true }
 
-    north_tline := linef{ { x1, y1 }, { x2, y1 } }
-    east_tline := linef{ { x2, y1 }, { x2, y2 } }
-    south_tline := linef{ { x2, y2 }, { x1, y2 } }
-    west_tline := linef{ { x1, y2 }, { x1, y1 } }
+    north_tline := Line{ { x1, y1 }, { x2, y1 } }
+    east_tline := Line{ { x2, y1 }, { x2, y2 } }
+    south_tline := Line{ { x2, y2 }, { x1, y2 } }
+    west_tline := Line{ { x1, y2 }, { x1, y1 } }
 
     return line_collide_line(line, north_tline) || line_collide_line(line, east_tline) || line_collide_line(line, south_tline) || line_collide_line(line, west_tline)
 }
 
-get_tile_distance_from_point :: proc(point: Vector2f, tile: Vector2u, tile_size: u32) -> f32 {
-    point_2 := Vector2f{ cast(f32) tile.x + (cast(f32) tile_size) / 2.0, cast(f32) tile.y + (cast(f32) tile_size) / 2.0 }
-    return vectorf_dist(point, point_2)
+get_tile_distance_from_point :: proc(point: sdl.Point, tile: TilePoint, tile_size: u32) -> f32 {
+    point_2 := sdl.Point{ cast(i32) tile.x /*+ tile_size / 2*/, cast(i32) tile.y /*+ tile_size / 2*/ }
+    return point_dist(point, point_2)
 }
 
 // line_to_nearest_collided_tile
 // distance_to: Vector2f, 
-line_collides_map :: proc( line: linef, tmap: TileMap, tinfo: TileInfo, line_collision_tier: u8) -> bool {
-    discrete_pos1 := vector_to_tile_position( line.p1, tmap )
-    discrete_pos2 := vector_to_tile_position( line.p2, tmap )
+line_collides_map :: proc( line: Line, tmap: TileMap, tinfo: TileInfo, line_collision_tier: u8) -> bool {
+    discrete_pos1 := point_to_tile_position( line.p1, tmap )
+    discrete_pos2 := point_to_tile_position( line.p2, tmap )
 
     max_discrete_x := max(discrete_pos1.x, discrete_pos2.x)
     min_discrete_x := min(discrete_pos1.x, discrete_pos2.x)
@@ -226,7 +238,7 @@ line_collides_map :: proc( line: linef, tmap: TileMap, tinfo: TileInfo, line_col
 
     for i := min_discrete_x; i <= max_discrete_x; i += 1 {
         for j := min_discrete_y; j <= max_discrete_y; j += 1 {
-            v := Vector2u{ i, j }
+            v := TilePoint{ i, j }
             if line_collide_tile(line, v, tmap.tile_size) && line_collision_tier < tinfo.collision_tier[tmap.set[i][j]]{
                 return true
             } 
@@ -236,14 +248,14 @@ line_collides_map :: proc( line: linef, tmap: TileMap, tinfo: TileInfo, line_col
     return false
 }
 
-box_collides_map :: proc(hitbox: Hitbox, position: Vector2f, tmap: TileMap, tinfo: TileInfo, collision_tier: u8) -> bool {
-    corners := hitbox_corners_with_position(hitbox, position)
+box_collides_map_ipoint :: proc(hitbox: Hitbox, position: sdl.Point, tmap: TileMap, tinfo: TileInfo, collision_tier: u8) -> bool {
+    corners := hitbox_corners_with_iposition(hitbox, position)
 
-    occupied := make([dynamic]Vector2u)
+    occupied := make([dynamic]TilePoint)
     defer delete(occupied)
 
     for vec in corners {
-        u_vec := vector_to_tile_position(vec, tmap)
+        u_vec := point_to_tile_position(vec, tmap)
         append(&occupied, u_vec)
     }
 
@@ -256,60 +268,31 @@ box_collides_map :: proc(hitbox: Hitbox, position: Vector2f, tmap: TileMap, tinf
     return false
 }
 
-tilemap_collision_correction :: proc(hitbox: Hitbox, old_pos, new_pos, vel: Vector2f, tmap: TileMap, tinfo: TileInfo, collision_tier: u8) -> Vector2f {
-    if new_pos == old_pos { return new_pos }
-    corrected_pos := new_pos
+box_collides_map_fpoint :: proc(hitbox: Hitbox, position: sdl.FPoint, tmap: TileMap, tinfo: TileInfo, collision_tier: u8) -> bool {
+    corners := hitbox_corners_with_fposition(hitbox, position)
 
-    new_corners := hitbox.corners
-    old_corners := hitbox_corners_with_position(hitbox, old_pos)
+    occupied := make([dynamic]TilePoint)
+    defer delete(occupied)
 
-    for corner in new_corners {
-        if corner.x < 0 || corner.y < 0 { 
-            return old_pos 
+    for vec in corners {
+        u_vec := point_to_tile_position(vec, tmap)
+        append(&occupied, u_vec)
+    }
+
+    for vec in occupied {
+        if collision_tier < tinfo.collision_tier[tmap.set[vec.x][vec.y]] {
+            return true
         }
     }
 
-    nw_line := linef{ old_corners[.NW], new_corners[.NW] }
-    ne_line := linef{ old_corners[.NE], new_corners[.NE] }
-    se_line := linef{ old_corners[.SE], new_corners[.SE] }
-    sw_line := linef{ old_corners[.SW], new_corners[.SW] }
-
-    collision_occurs := line_collides_map(nw_line, tmap, tinfo, collision_tier)
-    collision_occurs |= line_collides_map(ne_line, tmap, tinfo, collision_tier)
-    collision_occurs |= line_collides_map(se_line, tmap, tinfo, collision_tier)
-    collision_occurs |= line_collides_map(sw_line, tmap, tinfo, collision_tier)
-
-    if !collision_occurs {
-        return new_pos
-    }
-
-    move_diff_x := abs(old_pos.x - new_pos.x)
-    move_diff_y := abs(old_pos.y - new_pos.y)
-
-    move_diff := math.sqrt(math.pow(move_diff_x, 2) + math.pow(move_diff_y, 2))
-
-    subdivision_unit := math.floor_f32(cast(f32) tmap.tile_size / 2)
-
-    subdivision_unit = math.min(move_diff / 2, subdivision_unit)
-
-    corrected_pos = old_pos
-    next_corrected_pos : Vector2f
-    for subdivision_unit < 0.5 {
-        next_corrected_pos = corrected_pos + normalize_vectorf(vel) * subdivision_unit
-        if box_collides_map(hitbox, next_corrected_pos, tmap, tinfo, collision_tier) {
-            subdivision_unit /= 2
-            subdivision_unit = math.floor_f32(subdivision_unit)
-        } else {
-            corrected_pos = next_corrected_pos
-        }
-    }
-
-    return corrected_pos
+    return false
 }
 
+box_collides_map :: proc{ box_collides_map_ipoint, box_collides_map_fpoint }
+
 tilemap_collision_correction_split_axis :: proc(
-    hitbox: Hitbox, old_pos, new_pos: Vector2f, velocity: Vector2f, tmap: TileMap, tinfo: TileInfo, collision_tier: u8, dt: f32
-) -> (corrected_pos: Vector2f, collided_x, collided_y: bool) {
+    hitbox: Hitbox, old_pos, new_pos: sdl.FPoint, velocity: sdl.FPoint, tmap: TileMap, tinfo: TileInfo, collision_tier: u8, dt: f32
+) -> (corrected_pos: sdl.FPoint, collided_x, collided_y: bool) {
     corrected_pos = new_pos
     if new_pos == old_pos {
         collided_x = false
@@ -319,7 +302,7 @@ tilemap_collision_correction_split_axis :: proc(
     
 
     new_corners := hitbox.corners
-    old_corners := hitbox_corners_with_position(hitbox, old_pos)
+    old_corners := hitbox_corners_with_fposition(hitbox, old_pos)
 
     for corner in new_corners {
         if corner.x < 0 || corner.y < 0 { 
@@ -330,10 +313,10 @@ tilemap_collision_correction_split_axis :: proc(
         }
     }
 
-    nw_line := linef{ old_corners[.NW], new_corners[.NW] }
-    ne_line := linef{ old_corners[.NE], new_corners[.NE] }
-    se_line := linef{ old_corners[.SE], new_corners[.SE] }
-    sw_line := linef{ old_corners[.SW], new_corners[.SW] }
+    nw_line := Line{ fpoint_to_point(old_corners[.NW]), new_corners[.NW] }
+    ne_line := Line{ fpoint_to_point(old_corners[.NE]), new_corners[.NE] }
+    se_line := Line{ fpoint_to_point(old_corners[.SE]), new_corners[.SE] }
+    sw_line := Line{ fpoint_to_point(old_corners[.SW]), new_corners[.SW] }
 
     collision_occurs := line_collides_map(nw_line, tmap, tinfo, collision_tier)
     collision_occurs |= line_collides_map(ne_line, tmap, tinfo, collision_tier)
@@ -362,7 +345,7 @@ tilemap_collision_correction_split_axis :: proc(
     min_subdiv_y := math.min(0.5, move_diff_y / 10)
 
     corrected_pos = old_pos
-    next_corrected_pos : Vector2f = corrected_pos
+    next_corrected_pos : sdl.FPoint = corrected_pos
 
     checking_x := move_diff_x > 0
     checking_y := move_diff_y > 0
@@ -371,10 +354,10 @@ tilemap_collision_correction_split_axis :: proc(
     collided_y = false
 
     for checking_x || checking_y {
-        n_vel := normalize_vectorf(velocity)
+        n_vel := normalize_pointf(velocity)
         if checking_x {
             next_corrected_pos_x := corrected_pos.x + subdivision_unit_x
-            check_corrected_pos := Vector2f{ next_corrected_pos_x, corrected_pos.y }
+            check_corrected_pos := sdl.FPoint{ next_corrected_pos_x, corrected_pos.y }
             if box_collides_map(hitbox, check_corrected_pos, tmap, tinfo, collision_tier) {
                 subdivision_unit_x /= 2
                 collided_x = true
@@ -393,7 +376,7 @@ tilemap_collision_correction_split_axis :: proc(
 
         if checking_y {
             next_corrected_pos_y := corrected_pos.y + subdivision_unit_y
-            check_corrected_pos := Vector2f{ corrected_pos.x, next_corrected_pos_y }
+            check_corrected_pos := sdl.FPoint{ corrected_pos.x, next_corrected_pos_y }
             if box_collides_map(hitbox, check_corrected_pos, tmap, tinfo, collision_tier) {
                 subdivision_unit_y /= 2
                 collided_y = true
@@ -403,7 +386,6 @@ tilemap_collision_correction_split_axis :: proc(
             
             corrected_diff := abs(old_pos.y - next_corrected_pos.y)
 
-            fmt.printfln("%v %v", abs(subdivision_unit_y) < abs(min_subdiv_y), corrected_diff >= move_diff_y)
             if abs(subdivision_unit_y) < abs(min_subdiv_y) || corrected_diff >= move_diff_y {
                 checking_y = false
                 if box_collides_map(hitbox, check_corrected_pos, tmap, tinfo, collision_tier) {
@@ -427,7 +409,7 @@ tilemap_collision_correction_split_axis :: proc(
 }
 
 tilemap_check_entity_grounded :: proc(hitbox: Hitbox, tmap: TileMap, tinfo: TileInfo, collision_tier: u8) -> bool {
-    checking_line := linef{hitbox.corners[.SE], hitbox.corners[.SW]}
+    checking_line := Line{hitbox.corners[.SE], hitbox.corners[.SW]}
 
     checking_line.p1.y += 1
     checking_line.p2.y += 1
@@ -441,15 +423,15 @@ tile_out_of_bounds_coords :: proc(tmap: TileMap, x, y: u32) -> bool {
     return x < 0 || y < 0 || x >= tmap.width_tiles || y >= tmap.height_tiles
 }
 
-tile_out_of_bounds_vec :: proc(tmap: TileMap, pos: Vector2u) -> bool {
+tile_out_of_bounds_vec :: proc(tmap: TileMap, pos: TilePoint) -> bool {
     return pos.x < 0 || pos.y < 0 || pos.x >= tmap.width_tiles || pos.y >= tmap.height_tiles
 }
 
 tile_out_of_bounds :: proc{ tile_out_of_bounds_coords, tile_out_of_bounds_vec }
 
-tilemap_check_entity_grab :: proc(hitbox: Hitbox, tmap: TileMap, tinfo: TileInfo, collision_tier: u8, facing_right: bool) -> (should_grab: bool, tile: Vector2u) {
+tilemap_check_entity_grab :: proc(hitbox: Hitbox, tmap: TileMap, tinfo: TileInfo, collision_tier: u8, facing_right: bool) -> (should_grab: bool, tile: TilePoint) {
     should_grab = false
-    tile = Vector2u{0, 0}
+    tile = TilePoint{0, 0}
 
     top_corner := hitbox.corners[.NE]
     bottom_corner := hitbox.corners[.SE]
@@ -459,8 +441,8 @@ tilemap_check_entity_grab :: proc(hitbox: Hitbox, tmap: TileMap, tinfo: TileInfo
         bottom_corner = hitbox.corners[.SW]
     }
 
-    top_tile := vector_to_tile_position(top_corner, tmap)
-    bottom_tile := vector_to_tile_position(bottom_corner, tmap)
+    top_tile := point_to_tile_position(top_corner, tmap)
+    bottom_tile := point_to_tile_position(bottom_corner, tmap)
 
     top_tile_type := tmap.set[top_tile.x][top_tile.y]
     bottom_tile_type := tmap.set[bottom_tile.x][bottom_tile.y]
@@ -480,16 +462,18 @@ tilemap_check_entity_grab :: proc(hitbox: Hitbox, tmap: TileMap, tinfo: TileInfo
     return
 }
 
-draw_tilemap :: proc(tmap: TileMap, info: TileInfo, renderer: ^sdl.Renderer) {
+draw_tilemap :: proc(tmap: TileMap, info: TileInfo, camera: Camera, renderer: ^sdl.Renderer) {
     sdl.SetRenderDrawColor(renderer, 255, 255, 255, sdl.ALPHA_OPAQUE)
 
-    dest := sdl.FRect{ 0, 0, cast(f32) tmap.tile_size, cast(f32) tmap.tile_size }
+    dest := sdl.Rect{ 0, 0, cast(i32) tmap.tile_size, cast(i32) tmap.tile_size }
 
     for i in 0..<tmap.width_tiles {
         for j in 0..<tmap.height_tiles {
-            dest.x = cast(f32) (i * tmap.tile_size)
-            dest.y = cast(f32) (j * tmap.tile_size)
-            sdl.RenderTexture(renderer, info.textures[tmap.set[i][j]], nil, &dest)
+
+            dest.x = cast(i32) (i * tmap.tile_size)
+            dest.y = cast(i32) (j * tmap.tile_size)
+            render_texture_via_camera(camera, renderer, info.textures[tmap.set[i][j]], nil, &dest)
+            //sdl.RenderTexture(renderer, info.textures[tmap.set[i][j]], nil, &dest)
         }
     }
 }

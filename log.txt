@@ -1,35 +1,38 @@
 0.00 @ main.odin(40) -> Hello World!
-0.00 @ create_texture_set.odin(25) -> adding file teto.png to set
-0.00 @ create_texture_set.odin(25) -> adding file pick.png to set
-0.00 @ create_texture_set.odin(25) -> adding file car.bmp to set
-0.00 @ create_texture_set.odin(25) -> adding file air.png to set
-0.00 @ create_texture_set.odin(25) -> adding file wall.png to set
-0.00 @ create_texture_set.odin(25) -> adding file exit.png to set
+0.00 @ pre_sdl_init.odin(43) -> Finished pre-sdl global init 1.
 0.02 @ init_sdl.odin(18) -> Initialized SDL.
-0.17 @ init_sdl.odin(34) -> Initialized SDL window.
-0.17 @ init_sdl.odin(35) -> Initialized SDL renderer.
-0.17 @ change_meta_vsync.odin(37) -> VSync set to 1.
-0.17 @ change_meta_fullscreen.odin(44) -> Fullscreen set to false.
-0.17 @ change_meta_fullscreen.odin(52) -> Window size set to 800,800.
-0.17 @ load_texture_set.odin(35) -> Loading texture set entity
-0.17 @ load_texture_set.odin(50) -> Loaded texture from file assets/entity/img/teto.png.
-0.18 @ load_texture_set.odin(35) -> Loading texture set item
-0.19 @ load_texture_set.odin(50) -> Loaded texture from file assets/item/img/pick.png.
-0.20 @ load_texture_set.odin(35) -> Loading texture set map
-0.22 @ load_texture_set.odin(50) -> Loaded texture from file assets/map/img/car.bmp.
-0.23 @ load_texture_set.odin(35) -> Loading texture set tile
-0.24 @ load_texture_set.odin(50) -> Loaded texture from file assets/tile/img/air.png.
-0.25 @ load_texture_set.odin(50) -> Loaded texture from file assets/tile/img/wall.png.
-0.25 @ load_texture_set.odin(50) -> Loaded texture from file assets/tile/img/exit.png.
-22.68 @ main.odin(64) -> Goodbye World.
-22.72 @ end_sdl.odin(47) -> Cleanup successful.
-0.00 @ destroy_texture_set.odin(59) -> Destroyed teto.png texture.
-0.01 @ destroy_texture_set.odin(70) -> Destroyed texture set entity
-0.02 @ destroy_texture_set.odin(59) -> Destroyed pick.png texture.
-0.03 @ destroy_texture_set.odin(70) -> Destroyed texture set item
-0.04 @ destroy_texture_set.odin(59) -> Destroyed air.png texture.
-0.05 @ destroy_texture_set.odin(59) -> Destroyed exit.png texture.
-0.06 @ destroy_texture_set.odin(59) -> Destroyed wall.png texture.
-0.07 @ destroy_texture_set.odin(70) -> Destroyed texture set tile
-0.08 @ destroy_texture_set.odin(59) -> Destroyed car.bmp texture.
-0.09 @ destroy_texture_set.odin(70) -> Destroyed texture set map
+0.15 @ init_sdl.odin(34) -> Initialized SDL window.
+0.15 @ init_sdl.odin(35) -> Initialized SDL renderer.
+0.16 @ set_vsync.odin(45) -> VSync set to 1.
+0.16 @ set_fullscreen.odin(60) -> Fullscreen set to false.
+0.16 @ set_fullscreen.odin(68) -> Window size set to 1000,800.
+0.17 @ init_sdl.odin(42) -> Finished global init 2.
+0.18 @ create_game_clock.odin(32) -> Created game clock.
+0.18 @ create_texture_set.odin(25) -> adding file teto.png to set
+0.19 @ create_texture_set.odin(25) -> adding file pick.png to set
+0.19 @ create_texture_set.odin(25) -> adding file car.bmp to set
+0.20 @ create_texture_set.odin(25) -> adding file air.png to set
+0.20 @ create_texture_set.odin(25) -> adding file wall.png to set
+0.21 @ create_texture_set.odin(25) -> adding file exit.png to set
+0.22 @ create_camera.odin(26) -> Created camera.
+0.22 @ init_game.odin(58) -> Finished global init 3.
+0.23 @ load_texture_set.odin(35) -> Loading texture set entity
+0.24 @ load_texture_set.odin(50) -> Loaded texture from file assets/entity/img/teto.png.
+0.24 @ load_texture_set.odin(35) -> Loading texture set item
+0.25 @ load_texture_set.odin(50) -> Loaded texture from file assets/item/img/pick.png.
+0.25 @ load_texture_set.odin(35) -> Loading texture set map
+0.28 @ load_texture_set.odin(50) -> Loaded texture from file assets/map/img/car.bmp.
+0.29 @ load_texture_set.odin(35) -> Loading texture set tile
+0.29 @ load_texture_set.odin(50) -> Loaded texture from file assets/tile/img/air.png.
+0.30 @ load_texture_set.odin(50) -> Loaded texture from file assets/tile/img/wall.png.
+0.31 @ load_texture_set.odin(50) -> Loaded texture from file assets/tile/img/exit.png.
+0.31 @ init_load_game.odin(75) -> Finished global init 4.
+0.00 @ create_game_clock.odin(32) -> Created game clock.
+0.00 @ create_camera.odin(26) -> Created camera.
+0.00 @ create_camera.odin(26) -> Created camera.
+0.00 @ create_game_clock.odin(32) -> Created game clock.
+0.00 @ create_camera.odin(26) -> Created camera.
+0.00 @ create_camera.odin(26) -> Created camera.
+0.00 @ create_camera.odin(26) -> Created camera.
+0.00 @ create_camera.odin(26) -> Created camera.
+0.01 @ create_game_clock.odin(32) -> Created game clock.

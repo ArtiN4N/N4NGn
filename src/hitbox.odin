@@ -8,33 +8,32 @@ import img "vendor:sdl3/image"
 
 HitboxType :: enum{ COMBAT, COLLISION, GRAB }
 
-Corners :: enum{ NW = 0, NE, SE, SW }
-
 Hitbox :: struct {
-    position: Vector2f,
-    size: Vector2f,
-    anchor: ^Vector2f, // can be nil
+    position: sdl.Point,
+    size: sdl.Point,
+    anchor: ^sdl.Point, // can be nil
     type: HitboxType,
-    corners: [Corners]Vector2f,
+    corners: [RectangleCorners]sdl.Point,
+    lines: [RectangleLines]Line,
     last_facing_right: bool,
 }
 
-init_hitbox :: proc(hb: ^Hitbox, x, y, w, h: f32, anchor: ^Vector2f, type: HitboxType) {
-    hb.position = Vector2f{ x, y }
-    hb.size = Vector2f{ w, h }
+init_hitbox :: proc(hb: ^Hitbox, x, y, w, h: i32, anchor: ^sdl.Point, type: HitboxType) {
+    hb.position = sdl.Point{ x, y }
+    hb.size = sdl.Point{ w, h }
     hb.anchor = anchor
     hb.type = type
     hb.last_facing_right = true
 
     hb.corners = {
-        .NW = Vector2f{ x, y },
-        .NE = Vector2f{ x + w, y },
-        .SE = Vector2f{ x + w, y + h },
-        .SW = Vector2f{ x, y + h },
+        .NW = sdl.Point{ x, y },
+        .NE = sdl.Point{ x + w, y },
+        .SE = sdl.Point{ x + w, y + h },
+        .SW = sdl.Point{ x, y + h },
     }
 }
 
-hitbox_to_frect :: proc(hitbox: Hitbox) -> sdl.FRect {
+hitbox_to_rect :: proc(hitbox: Hitbox) -> sdl.Rect {
     x := hitbox.position.x
     y := hitbox.position.y
 
@@ -43,7 +42,7 @@ hitbox_to_frect :: proc(hitbox: Hitbox) -> sdl.FRect {
         y += hitbox.anchor.y
     }
 
-    return sdl.FRect{ 
+    return sdl.Rect{ 
         x, y,
         hitbox.size.x, hitbox.size.y
     }
@@ -68,14 +67,14 @@ update_hitbox :: proc(hitbox: ^Hitbox, facing_right: bool = true) {
     }
 
     hitbox.corners = {
-        .NW = Vector2f{ x, y },
-        .NE = Vector2f{ x + w, y },
-        .SE = Vector2f{ x + w, y + h },
-        .SW = Vector2f{ x, y + h },
+        .NW = sdl.Point{ x, y },
+        .NE = sdl.Point{ x + w, y },
+        .SE = sdl.Point{ x + w, y + h },
+        .SW = sdl.Point{ x, y + h },
     }
 }
 
-hitbox_corners_with_position :: proc(hitbox: Hitbox, position: Vector2f, facing_right: bool = true) -> [Corners]Vector2f {
+hitbox_corners_with_iposition :: proc(hitbox: Hitbox, position: sdl.Point, facing_right: bool = true) -> [RectangleCorners]sdl.Point {
     h_pos_x := hitbox.position.x
 
     if !facing_right {
@@ -87,11 +86,31 @@ hitbox_corners_with_position :: proc(hitbox: Hitbox, position: Vector2f, facing_
     w := hitbox.size.x
     h := hitbox.size.y
 
-    return [Corners]Vector2f{
-        .NW = Vector2f{ x, y },
-        .NE = Vector2f{ x + w, y },
-        .SE = Vector2f{ x + w, y + h },
-        .SW = Vector2f{ x, y + h },
+    return [RectangleCorners]sdl.Point{
+        .NW = sdl.Point{ x, y },
+        .NE = sdl.Point{ x + w, y },
+        .SE = sdl.Point{ x + w, y + h },
+        .SW = sdl.Point{ x, y + h },
+    }
+}
+
+hitbox_corners_with_fposition :: proc(hitbox: Hitbox, position: sdl.FPoint, facing_right: bool = true) -> [RectangleCorners]sdl.FPoint {
+    h_pos_x := hitbox.position.x
+
+    if !facing_right {
+        h_pos_x *= -1
+    }
+
+    x := cast(f32) h_pos_x + position.x
+    y := cast(f32) hitbox.position.y + position.y
+    w := cast(f32) hitbox.size.x
+    h := cast(f32) hitbox.size.y
+
+    return [RectangleCorners]sdl.FPoint{
+        .NW = sdl.FPoint{ x, y },
+        .NE = sdl.FPoint{ x + w, y },
+        .SE = sdl.FPoint{ x + w, y + h },
+        .SW = sdl.FPoint{ x, y + h },
     }
 }
 
@@ -108,9 +127,10 @@ draw_hitbox :: proc(hitbox: Hitbox, renderer: ^sdl.Renderer) {
 
     sdl.SetRenderDrawColor(renderer, r, g, b, sdl.ALPHA_OPAQUE)
 
-    box := hitbox_to_frect(hitbox)
+    box := hitbox_to_rect(hitbox)
 
-    round_decimals(&box.x, &box.y)
+    //round_decimals(&box.x, &box.y)
 
-    sdl.RenderRect(renderer, &box)
+    // note: move this to camera
+    //sdl.RenderRect(renderer, &box)
 }
