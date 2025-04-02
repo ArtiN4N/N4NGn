@@ -1,18 +1,15 @@
-package main
-
-import "core:fmt"
-import "core:os"
-import "core:strings"
+package g4n
 import sdl "vendor:sdl3"
 import img "vendor:sdl3/image"
+import "core:strings"
 
-// Global INIT 2
-init_sdl :: proc(game: ^Game) {
-	md := game.meta_data
 
+// Second global init to start SDL
+init_sdl :: proc(intrinsics: ^SDLIntrinsics) {
+	md := &intrinsics.meta_data
 	if !sdl.Init(md.sdl_init_flags) {
 		log("Error initializing SDL. SDL error message: %s", sdl.GetError())
-		game.quit = true
+		intrinsics.quit = true
 		return
 	}
 	log("Initialized SDL.")
@@ -20,32 +17,32 @@ init_sdl :: proc(game: ^Game) {
 	cstr_title := strings.clone_to_cstring(md.window_title)
 	sdl.CreateWindowAndRenderer(
 		cstr_title, md.window_width, md.window_height, md.sdl_window_flags,
-		&game.window, &game.renderer
+		&intrinsics.window, &intrinsics.renderer
 	)
 
 	delete(cstr_title)
 
-	if game.window == nil || game.renderer == nil {
+	if intrinsics.window == nil || intrinsics.renderer == nil {
 		log("Error creating SDL2 window or renderer. SDL error message: %s", sdl.GetError())
-		game.quit = true
+		intrinsics.quit = true
 		return
 	}
 	
 	log("Initialized SDL window.")
 	log("Initialized SDL renderer.")
 
-	set_vsync(&game.meta_data, &game.renderer, 1)
-	set_fullscreen(&game.meta_data, &game.window, false)
+	set_vsync(md, &intrinsics.renderer, 1)
+	set_fullscreen(md, &intrinsics.window, false)
 
-	sdl.SetRenderDrawBlendMode(game.renderer, sdl.BLENDMODE_BLEND)
+	sdl.SetRenderDrawBlendMode(intrinsics.renderer, sdl.BLENDMODE_BLEND)
 
 	log("Finished global init 2.")
 }
 
 // global shutdown 2
-end_sdl :: proc(game: ^Game) {
-	sdl.DestroyRenderer(game.renderer) 
-	sdl.DestroyWindow(game.window)
+end_sdl :: proc(intrinsics: ^SDLIntrinsics) {
+	sdl.DestroyRenderer(intrinsics.renderer) 
+	sdl.DestroyWindow(intrinsics.window)
 
 	log("Finished global shutdown 2.")
 
