@@ -1,4 +1,4 @@
-package main
+package g4n
 import sdl "vendor:sdl3"
 import "core:testing"
 
