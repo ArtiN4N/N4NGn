@@ -1,8 +1,4 @@
-package main
-
-import "core:fmt"
-import "core:os"
-import "core:strings"
+package g4n
 import sdl "vendor:sdl3"
 
 DEFAULT_WINDOW_WIDTH :: 1000
@@ -25,15 +21,18 @@ SDLMetaData :: struct {
 }
 
 // Happens before SDL is init
-init_meta_data :: proc() -> (md: SDLMetaData) {
+init_meta_data :: proc(
+    flags : sdl.InitFlags = DEFAULT_INIT_FLAGS,
+    window_title : string = DEFAULT_WINDOW_TITLE, window_width : i32 = DEFAULT_WINDOW_WIDTH, window_height : i32 = DEFAULT_WINDOW_HEIGHT,
+) -> (md : SDLMetaData) {
     // Remember to update this to inclue all aspects of sdl that are needed.
-    md.sdl_init_flags = DEFAULT_INIT_FLAGS
+    md.sdl_init_flags = flags
     md.sdl_window_flags = {}
 
     md.vsync = DEFAULT_VSYNC
-    md.window_title = DEFAULT_WINDOW_TITLE
-    md.window_width = DEFAULT_WINDOW_WIDTH
-    md.window_height = DEFAULT_WINDOW_HEIGHT
+    md.window_title = window_title
+    md.window_width = window_width
+    md.window_height = window_height
 
     return
 }
