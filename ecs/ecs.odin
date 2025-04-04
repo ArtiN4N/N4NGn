@@ -25,4 +25,10 @@ create_ecs_state :: proc() -> (state: ECSState) {
     return
 }
 
-// see destroy_ecs_state in by_component_code.odin
+destroy_ecs_state :: proc(ecs_state: ^ECSState) {
+    destroy_ecs_component_collections(ecs_state)
+    delete(ecs_state.component_ids)
+    delete(ecs_state.entity_bitsets)
+}
+
+// see destroy_ecs_component_collections in by_component_code.odin
