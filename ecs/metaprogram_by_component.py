@@ -29,7 +29,7 @@ def ecs_state_struct_plate():
         if i > 0:
             ret += "\t"
         i += 1
-        ret += f"{lower_with_underscore(component)}_cc: ComponentCollection({component}Component)\n"
+        ret += f"{lower_with_underscore(component)}_cc: ComponentCollection({component}Component),\n"
     return ret[:-1]
 
 def destroy_ecs_component_data_plate():

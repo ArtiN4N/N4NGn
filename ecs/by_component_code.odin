@@ -6,16 +6,16 @@ import g4n "../g4n"
 ECSState :: struct {
     active_entities: EntityID,
 
-    physics_cc: ComponentCollection(PhysicsComponent)
-	edge_grab_cc: ComponentCollection(EdgeGrabComponent)
-	gravity_cc: ComponentCollection(GravityComponent)
-	movement_direction_cc: ComponentCollection(MovementDirectionComponent)
-	coyote_time_cc: ComponentCollection(CoyoteTimeComponent)
-	movement_cc: ComponentCollection(MovementComponent)
-	humanoid_movement_cc: ComponentCollection(HumanoidMovementComponent)
-	jumping_cc: ComponentCollection(JumpingComponent)
-	render_cc: ComponentCollection(RenderComponent)
-	render_physics_cc: ComponentCollection(RenderPhysicsComponent)
+    physics_cc: ComponentCollection(PhysicsComponent),
+	edge_grab_cc: ComponentCollection(EdgeGrabComponent),
+	gravity_cc: ComponentCollection(GravityComponent),
+	movement_direction_cc: ComponentCollection(MovementDirectionComponent),
+	coyote_time_cc: ComponentCollection(CoyoteTimeComponent),
+	movement_cc: ComponentCollection(MovementComponent),
+	humanoid_movement_cc: ComponentCollection(HumanoidMovementComponent),
+	jumping_cc: ComponentCollection(JumpingComponent),
+	render_cc: ComponentCollection(RenderComponent),
+	render_physics_cc: ComponentCollection(RenderPhysicsComponent),
 
     component_ids: map[typeid]ComponentID,
 
