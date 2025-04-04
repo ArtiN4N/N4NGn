@@ -103,10 +103,8 @@ destroy_ecs_component_data :: proc{{
     {destroy_ecs_component_data_plate()}
 }}
 
-destroy_ecs_state :: proc(ecs_state: ^ECSState) {{
+destroy_ecs_component_collections :: proc(ecs_state: ^ECSState) {{
     {destroy_ecs_state_plate()}
-    delete(ecs_state.component_ids)
-    delete(ecs_state.entity_bitsets)
 }}
 
 stock_ecs_state_component_ids :: proc(state: ^ECSState) {{
