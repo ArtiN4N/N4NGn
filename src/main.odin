@@ -1,73 +1,36 @@
 package main
-
-import "core:fmt"
-import "core:os"
-import "core:strings"
-import "core:c/libc"
-import olog "core:log" 
-import "core:mem"
 import sdl "vendor:sdl3"
+import g4n "../g4n"
+import "core:fmt"
 
 main :: proc() {
-	context.logger = olog.create_console_logger()
+	tracking_allocator := g4n.create_tracking_allocator()
+	defer g4n.destroy_tracking_allocator(&tracking_allocator)
 
-	default_allocator := context.allocator
-	tracking_allocator: mem.Tracking_Allocator
-	mem.tracking_allocator_init(&tracking_allocator, default_allocator)
-	context.allocator = mem.tracking_allocator(&tracking_allocator)
-
-	reset_tracking_allocator :: proc(a: ^mem.Tracking_Allocator) -> bool {
-		err := false
-
-		for _, value in a.allocation_map {
-			fmt.printf("%v: Leaked %v bytes\n", value.location, value.size)
-			err = true
-		}
-
-		mem.tracking_allocator_clear(a)
-		return err
-	}
-
-	defer {
-		if reset_tracking_allocator(&tracking_allocator) {
-			libc.getchar()
-		}
-	
-		mem.tracking_allocator_destroy(&tracking_allocator)
-	}
-
-	init_logs("", "special_")
-    log("Hello World!")
+	g4n.init_logs("", "ecs_")
+    g4n.log("Hello World!")
 
 	game: Game = {}
-	pre_sdl_init(&game)
-	init_sdl(&game)
-	init_game(&game)
+	s_intrinsics := g4n.pre_sdl_init()
+	g4n.init_sdl(&s_intrinsics)
+	init_game(&game, s_intrinsics)
 	init_load_game(&game)
 
-	defer end_sdl(&game)
+	defer g4n.end_sdl(&game.sdl_intrinsics)
 	defer cleanup_game(&game)
 
-	for !game.quit {
+	for !game.sdl_intrinsics.quit {
 		game_loop(&game)
 
-		if len(tracking_allocator.bad_free_array) > 0 {
-			for b in tracking_allocator.bad_free_array {
-				log("Bad free at: %v", b.location)
-			}
-
-			libc.getchar()
-			panic("Bad free detected")
-		}
+		g4n.check_tracking_allocator(&tracking_allocator)
 	}
 
-	log("Goodbye World.")
+	g4n.log("Goodbye World.")
 }
 
 game_loop :: proc(game: ^Game) {
-	update_timesteps(&game.timing)
-	game.timing.dt = get_deltatime(game.timing)
-	if (game.timing.timestepsIndex == 0) { game.timing.fps = cast(int) (1.0 / game.timing.dt) }
+	g4n.update_timesteps(&game.timing)
+	game.timing.dt = g4n.get_deltatime(game.timing)
 
 	game_handle_events(game)
 	game_update(game)
@@ -76,28 +39,28 @@ game_loop :: proc(game: ^Game) {
 }
 
 game_update :: proc(game: ^Game) {
-	update_player_entity(&game.player, game.global_entity_acceleration, game.tile_map, game.tile_info, game.timing.dt)
+	//update_player_entity(&game.player, game.global_entity_acceleration, game.tile_map, game.tile_info, game.timing.dt)
 }
 
 game_render :: proc(game: ^Game) {
-	sdl.SetRenderDrawColor(game.renderer, 0, 0, 0, 255)
-	sdl.RenderClear(game.renderer)
+	sdl.SetRenderDrawColor(game.sdl_intrinsics.renderer, 0, 0, 0, 255)
+	sdl.RenderClear(game.sdl_intrinsics.renderer)
 
-	sdl.SetRenderDrawColor(game.renderer, 255, 255, 255, 255)
+	sdl.SetRenderDrawColor(game.sdl_intrinsics.renderer, 255, 255, 255, 255)
 	background : ^^sdl.Texture = &game.texture_sets["map"].textures["car.bmp"]
 	//sdl.RenderTexture(game.renderer, background^, nil, &dest)
 
 	//start_camera_render(&game.view_camera)
-	draw_tilemap(game.tile_map, game.tile_info, game.view_camera, game.renderer)
-	draw_player_entity(game.player, game.view_camera, game.renderer)
+	//draw_tilemap(game.tile_map, game.tile_info, game.view_camera, game.sdl_intrinsics.renderer)
+	//draw_player_entity(game.player, game.view_camera, game.sdl_intrinsics.renderer)
 
 	//end_camera_render(&game.view_camera)
 
-	sdl.SetRenderDrawColor(game.renderer, 255, 255, 255, 255)
+	sdl.SetRenderDrawColor(game.sdl_intrinsics.renderer, 255, 255, 255, 255)
 	ui_rect := sdl.FRect{ 0, 0, 120, 70 }
-	sdl.RenderFillRect(game.renderer, &ui_rect)
+	sdl.RenderFillRect(game.sdl_intrinsics.renderer, &ui_rect)
 
-	sdl.SetRenderDrawColor(game.renderer, 0, 0, 0, 255)
+	sdl.SetRenderDrawColor(game.sdl_intrinsics.renderer, 0, 0, 0, 255)
 	//sdl.RenderDebugTextFormat(game.renderer, 10, 30, "vel = %d", game.player.velocity.y)
-	sdl.RenderPresent(game.renderer)
+	sdl.RenderPresent(game.sdl_intrinsics.renderer)
 }
