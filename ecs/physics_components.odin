@@ -4,10 +4,13 @@ import g4n "../g4n"
 
 PhysicsComponent :: struct {
     body: g4n.PhysicsBody,
-    velocity: g4n.FVector,
-    acceleration: g4n.FVector,
+    //velocity: g4n.FVector,
+    //acceleration: g4n.FVector,
     velo_forces: [dynamic]g4n.Force,
     accel_forces: [dynamic]g4n.Force,
+    accum_accel_velo: g4n.Force,
+
+    suspended: bool,
     mass: f32,
     // 0 for no bounce, 255 for max bounce
     bounciness: u8,
@@ -19,12 +22,15 @@ create_physics_component_data :: proc(
 ) -> (component: PhysicsComponent) {
     component.body = g4n.make_physics_body(anchor, width, height, body_anchor_x, body_anchor_y)
 
-    component.velocity = g4n.FVECTOR_ZERO
-    component.acceleration = g4n.FVECTOR_ZERO
+    //component.velocity = g4n.FVECTOR_ZERO
+    //component.acceleration = g4n.FVECTOR_ZERO
 
     component.velo_forces = make([dynamic]g4n.Force)
     component.accel_forces = make([dynamic]g4n.Force)
 
+    component.accum_accel_velo = g4n.Force{g4n.FVECTOR_ZERO, 0.5}
+
+    component.suspended = false
     component.mass = mass
     component.bounciness = bounciness
     return
@@ -34,6 +40,24 @@ destroy_physics_component_data :: proc(component: ^PhysicsComponent) {
     delete(component.accel_forces)
 }
 
+update_physics_component :: proc(phys_c: ^PhysicsComponent, pos_c: ^PositionComponent, dt: f32) {
+    velocity := g4n.FVECTOR_ZERO
+    acceleration := g4n.FVECTOR_ZERO
+
+    for &accel in phys_c.accel_forces {
+        acceleration += g4n.apply_force(&accel) / phys_c.mass
+    }
+
+    phys_c.accum_accel_velo.direction += acceleration * dt
+
+    for &velo in phys_c.velo_forces {
+        velocity += g4n.apply_force(&velo)
+    }
+
+    velocity += g4n.apply_force(&phys_c.accum_accel_velo)
+
+    pos_c.physics_position += velocity * dt
+}
 
 
 
@@ -41,6 +65,7 @@ EdgeGrabComponent :: struct {
     is_grabbing: bool,
     trying_to_grab: bool,
     grabbed_tile: g4n.TVector,
+    tile_right: bool,
 }
 
 create_edge_grab_component_data :: proc() -> (component: EdgeGrabComponent) {
@@ -51,6 +76,9 @@ create_edge_grab_component_data :: proc() -> (component: EdgeGrabComponent) {
 }
 destroy_edge_grab_component_data :: proc(component: ^EdgeGrabComponent) {}
 
+update_edge_grab_component :: proc(eg_c: ^EdgeGrabComponent, target_tile: g4n.TVector) {
+    //if eg_c.trying_to_grab
+}
 
 
 
