@@ -1,11 +1,10 @@
-package main
+package g4n
 
-import "core:fmt"
+import sdl "vendor:sdl3"
+import img "vendor:sdl3/image"
 import "core:os"
 import "core:strings"
 import "core:strconv"
-import sdl "vendor:sdl3"
-import img "vendor:sdl3/image"
 
 // Allows for dynamic loading and unloading of a group of texture simeulteanously
 TextureSet :: struct {
