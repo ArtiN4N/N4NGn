@@ -428,3 +428,82 @@ trect_vector_dist :: proc(a: TRect, b: TVector) -> f32 {
 }
 
 rect_vector_dist :: proc{irect_vector_dist, frect_vector_dist, trect_vector_dist}
+
+get_rect_movement_defining_lines :: proc(rect: FRect, p_pos: FVector) -> (edge_line_a, mid_line, edge_line_b: FLine) {
+    p_rect := rect
+    p_rect.x = p_pos.x
+    p_rect.y = p_pos.y
+
+    corners := get_rect_corners(rect)
+    p_corners := get_rect_corners(p_rect)
+
+    direct_north_movement : bool = p_corners[.SW].y < corners[.SW].y && p_corners[.SW].x == corners[.SW].x && p_corners[.NE].x == corners[.NE].x
+    direct_south_movement : bool = p_corners[.NW].y > corners[.NW].y && p_corners[.SW].x == corners[.SW].x && p_corners[.NE].x == corners[.NE].x
+
+    direct_east_movement : bool = p_corners[.NW].x > corners[.NW].x && p_corners[.SW].y == corners[.SW].y && p_corners[.NE].y == corners[.NE].y
+    direct_west_movement : bool = p_corners[.NE].x < corners[.NE].x && p_corners[.SW].y == corners[.SW].y && p_corners[.NE].y == corners[.NE].y
+
+    if direct_north_movement {
+        edge_line_a = FLine{corners[.SW], p_corners[.NW]}
+        edge_line_b = FLine{corners[.SE], p_corners[.NE]}
+        mid_line = FLine{corners[.SE], p_corners[.NE]}
+
+        return
+    }
+    if direct_south_movement {
+        edge_line_a = FLine{corners[.NW], p_corners[.SW]}
+        edge_line_b = FLine{corners[.NE], p_corners[.SE]}
+        mid_line = FLine{corners[.NE], p_corners[.SE]}
+
+        return
+    }
+    if direct_east_movement {
+        edge_line_a = FLine{corners[.NW], p_corners[.NE]}
+        edge_line_b = FLine{corners[.SW], p_corners[.SE]}
+        mid_line = FLine{corners[.SW], p_corners[.SE]}
+
+        return
+    }
+    if direct_north_movement {
+        edge_line_a = FLine{corners[.NE], p_corners[.NW]}
+        edge_line_b = FLine{corners[.SE], p_corners[.SW]}
+        mid_line = FLine{corners[.SE], p_corners[.SW]}
+
+        return
+    }
+
+    NE_quadrant_movement : bool = p_corners[.SW].x > corners[.SW].x && p_corners[.SW].y < corners[.SW].y
+    SW_quadrant_movement : bool = p_corners[.NE].x < corners[.NE].x && p_corners[.NE].y > corners[.NE].y
+    SE_quadrant_movement : bool = p_corners[.SW].x > corners[.SW].x && p_corners[.NE].y > corners[.NE].y
+
+    if NE_quadrant_movement {
+        edge_line_a = FLine{corners[.NW], p_corners[.NW]}
+        edge_line_b = FLine{corners[.SE], p_corners[.SE]}
+        mid_line = FLine{corners[.SW], p_corners[.NE]}
+
+        return
+    }
+
+    if SW_quadrant_movement {
+        edge_line_a = FLine{corners[.NW], p_corners[.NW]}
+        edge_line_b = FLine{corners[.SE], p_corners[.SE]}
+        mid_line = FLine{corners[.NE], p_corners[.SW]}
+
+        return
+    }
+
+    if SE_quadrant_movement {
+        edge_line_a = FLine{corners[.NE], p_corners[.NE]}
+        edge_line_b = FLine{corners[.SW], p_corners[.SW]}
+        mid_line = FLine{corners[.NW], p_corners[.SE]}
+
+        return
+    }
+
+    // NE quadrant
+    edge_line_a = FLine{corners[.NE], p_corners[.NE]}
+    edge_line_b = FLine{corners[.SW], p_corners[.SW]}
+    mid_line = FLine{corners[.SE], p_corners[.NW]}
+
+    return
+}
