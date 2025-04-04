@@ -1,21 +1,27 @@
 package g4n
 import sdl "vendor:sdl3"
 
+ForceHandle :: ^Force
+
+DECAY_MINIMUM :: 0.05
+
 // For velocity and acceleration
 Force :: struct {
     direction: FVector,
-    magnitude: f32,
+    //magnitude: f32,
     decay: f32,
 }
 
 apply_force :: proc(f: ^Force) -> (r: FVector) {
-    r = f.direction * f.magnitude
-    f.magnitude *= f.decay
+    r = f.direction
+    f.direction = vector_mult_scalar(f.direction, f.decay)
+    if abs(f.direction.x) < DECAY_MINIMUM { f.direction.x = 0 }
+    if abs(f.direction.y) < DECAY_MINIMUM { f.direction.y = 0 }
     return
 }
 
 read_force :: proc(f: Force) -> (r: FVector) {
-    r = f.direction * f.magnitude
+    r = f.direction
     return
 }
 
