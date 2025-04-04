@@ -72,6 +72,30 @@ to_iline :: proc{fline_to_iline, tline_to_iline}
 
 
 
+cap_negative_iline_coords :: proc(i: ILine) -> (r: ILine) {
+    r = i
+    if r.a.x < 0 { r.a.x = 0 }
+    if r.b.x < 0 { r.b.x = 0 }
+    if r.a.y < 0 { r.a.y = 0 }
+    if r.b.y < 0 { r.b.y = 0 }
+
+    return
+}
+cap_negative_fline_coords :: proc(i: FLine) -> (r: FLine) {
+    r = i
+    if r.a.x < 0 { r.a.x = 0 }
+    if r.b.x < 0 { r.b.x = 0 }
+    if r.a.y < 0 { r.a.y = 0 }
+    if r.b.y < 0 { r.b.y = 0 }
+
+    return
+}
+
+cap_negative_line_coords :: proc{cap_negative_iline_coords, cap_negative_fline_coords}
+
+
+
+
 iline_midpoint :: proc(i: ILine) -> IVector {
     return { (i.a.x + i.b.x) / 2, (i.a.y + i.b.y) / 2 }
 }
