@@ -35,7 +35,7 @@ destroy_ecs_component_data :: proc{
 	destroy_render_physics_component_data,
 }
 
-destroy_ecs_state :: proc(ecs_state: ^ECSState) {
+destroy_ecs_component_collections :: proc(ecs_state: ^ECSState) {
     destroy_component_collection(&ecs_state.physics_cc)
 	destroy_component_collection(&ecs_state.edge_grab_cc)
 	destroy_component_collection(&ecs_state.gravity_cc)
@@ -46,8 +46,6 @@ destroy_ecs_state :: proc(ecs_state: ^ECSState) {
 	destroy_component_collection(&ecs_state.jumping_cc)
 	destroy_component_collection(&ecs_state.render_cc)
 	destroy_component_collection(&ecs_state.render_physics_cc)
-    delete(ecs_state.component_ids)
-    delete(ecs_state.entity_bitsets)
 }
 
 stock_ecs_state_component_ids :: proc(state: ^ECSState) {
