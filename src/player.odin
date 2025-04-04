@@ -8,7 +8,7 @@ import "core:math"
 import sdl "vendor:sdl3"
 import img "vendor:sdl3/image"
 
-init_player_entity :: proc(player: ^Entity, texture: ^^sdl.Texture) {
+/*init_player_entity :: proc(player: ^Entity, texture: ^^sdl.Texture) {
     player.texture = texture
     //sdl.SetTextureScaleMode(player.texture^, sdl.ScaleMode.NEAREST)
 
@@ -38,9 +38,9 @@ init_player_entity :: proc(player: ^Entity, texture: ^^sdl.Texture) {
     player.jump_vel = -500
 
     // Again, should be manually finetuned
-    init_hitbox(&player.combat_hitbox, -12, -12, 25, 25, &player.discrete_position, .COMBAT)
-    init_hitbox(&player.collision_hitbox, -15, -15, 30, 30, &player.discrete_position, .COLLISION)
-    init_hitbox(&player.grab_hitbox, -45, -25, 90, 4, &player.discrete_position, .GRAB)
+    player.combat_hitbox = create_hitbox(-12, -12, 25, 25, &player.discrete_position, .COMBAT)
+    player.collision_hitbox = create_hitbox(-15, -15, 30, 30, &player.discrete_position, .COLLISION)
+    player.grab_hitbox = create_hitbox(-45, -25, 90, 4, &player.discrete_position, .GRAB)
 
     player.collision_tier = 0
 
@@ -50,9 +50,9 @@ init_player_entity :: proc(player: ^Entity, texture: ^^sdl.Texture) {
 
     player.grabbing = false
     player.grabbing_target_tile = TilePoint{0, 0}
-}
+}*/
 
-handle_player_input_keydown :: proc(player: ^Entity, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
+/*handle_player_input_keydown :: proc(player: ^Entity, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
     #partial switch scan_code {
         case .W:
             player.grabbing = false
@@ -77,9 +77,9 @@ handle_player_input_keydown :: proc(player: ^Entity, scan_code: sdl.Scancode, ke
         case sdl.K_LSHIFT:
             player.is_walking = true
     }
-}
+}*/
 
-handle_player_input_keyup :: proc(player: ^Entity, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
+/*handle_player_input_keyup :: proc(player: ^Entity, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
     #partial switch scan_code {
         //case .W:
             //player.move_velocity.y += 1
@@ -95,9 +95,9 @@ handle_player_input_keyup :: proc(player: ^Entity, scan_code: sdl.Scancode, key_
         case sdl.K_LSHIFT:
             player.is_walking = false
     }
-}
+}*/
 
-update_player_entity :: proc(player: ^Entity, global_entity_acceleration: sdl.FPoint, tmap: TileMap, tinfo: TileInfo, dt: f32) {
+/*update_player_entity :: proc(player: ^Entity, global_entity_acceleration: sdl.FPoint, tmap: TileMap, tinfo: TileInfo, dt: f32) {
     player.grounded_timer += dt
     move_velocity := player.move_velocity
     //move_velocity.y = 0
@@ -161,9 +161,9 @@ update_player_entity :: proc(player: ^Entity, global_entity_acceleration: sdl.FP
     // grab:
     // when not grounded and falling and facing right and not holding down
     //      check hitbox with top of tiles to the right
-}
+}*/
 
-draw_player_entity :: proc(player: Entity, camera: Camera, renderer: ^sdl.Renderer) {
+/*draw_player_entity :: proc(player: Entity, camera: Camera, renderer: ^sdl.Renderer) {
     sdl.SetRenderDrawColor(renderer, 255, 255, 255, sdl.ALPHA_OPAQUE)
 
     player := player
@@ -201,9 +201,9 @@ draw_player_entity :: proc(player: Entity, camera: Camera, renderer: ^sdl.Render
     // debug player hitbox
     //draw_hitbox(player.combat_hitbox, renderer)
     //draw_hitbox(player.collision_hitbox, renderer)
-    if player.grabbing { draw_hitbox(player.grab_hitbox, renderer) } 
+    if player.grabbing { draw_hitbox(player.grab_hitbox, camera, renderer) } 
 
-    /*// debug occupied tiles
+    // debug occupied tiles
     
     occupied := make([dynamic]TilePoint)
     defer delete(occupied)
@@ -220,10 +220,10 @@ draw_player_entity :: proc(player: Entity, camera: Camera, renderer: ^sdl.Render
         rect.y = (cast(f32) vec.y) * (cast(f32) tmap.tile_size)
 
         //sdl.RenderFillRect(renderer, &rect)
-    }*/
-}
+    }
+}*/
 
-set_player_position_grid :: proc(player: ^Entity, pos: TilePoint, g_size: u32) {
+/*set_player_position_grid :: proc(player: ^Entity, pos: TilePoint, g_size: u32) {
     set_pos := sdl.FPoint{ cast(f32) (pos.x * g_size + g_size / 2), cast(f32) (pos.y * g_size + g_size / 2)}
     player.position = set_pos
-}
+}*/
