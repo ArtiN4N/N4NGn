@@ -65,6 +65,16 @@ to_ivector :: proc{fvector_to_ivector, tvector_to_ivector}
 
 
 
+floor_fvector :: proc(i: FVector) -> (r: FVector){
+    r.x = math.floor(i.x)
+    r.y = math.floor(i.y)
+
+    return
+}
+
+
+
+
 ivector_add :: proc(a, b: IVector) -> (r: IVector)  {
     r = a + b
     return
@@ -78,8 +88,46 @@ tvector_add :: proc(a, b: TVector) -> (r: TVector)  {
     return
 }
 
-// Vector type dominates
 vector_add :: proc{ivector_add, fvector_add, tvector_add}
+
+
+
+
+ivector_sub :: proc(a, b: IVector) -> (r: IVector)  {
+    r = a - b
+    return
+}
+fvector_sub :: proc(a, b: FVector) -> (r: FVector)  {
+    r = a - b
+    return
+}
+tvector_sub :: proc(a, b: TVector) -> (r: TVector)  {
+    r = a - b
+    return
+}
+
+vector_sub :: proc{ivector_sub, fvector_sub, tvector_sub}
+
+
+
+
+ivector_abs :: proc(a: IVector) -> (r: IVector)  {
+    r.x = abs(a.x)
+    r.y = abs(a.y)
+    return
+}
+fvector_abs :: proc(a: FVector) -> (r: FVector)  {
+    r.x = abs(a.x)
+    r.y = abs(a.y)
+    return
+}
+tvector_abs :: proc(a: TVector) -> (r: TVector)  {
+    r.x = abs(a.x)
+    r.y = abs(a.y)
+    return
+}
+
+vector_abs :: proc{ivector_abs, fvector_abs, tvector_abs}
 
 
 
