@@ -8,6 +8,17 @@ Force :: struct {
     decay: f32,
 }
 
+apply_force :: proc(f: ^Force) -> (r: FVector) {
+    r = f.direction * f.magnitude
+    f.magnitude *= f.decay
+    return
+}
+
+read_force :: proc(f: Force) -> (r: FVector) {
+    r = f.direction * f.magnitude
+    return
+}
+
 PhysicsBody :: struct {
     // the position of this rect acts as an offset from the anchor
     rect: FRect,
