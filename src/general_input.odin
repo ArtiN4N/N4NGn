@@ -4,6 +4,7 @@ import "core:fmt"
 import "core:os"
 import "core:strings"
 import sdl "vendor:sdl3"
+import g4n "../g4n"
 
 // Note that key handling events use both scancodes and keycodes.
 // Scancodes refer to the physical location on keyboard, and dont care about what a key is called.
@@ -14,23 +15,23 @@ import sdl "vendor:sdl3"
 handle_keydown_event :: proc(game: ^Game, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
 	#partial switch scan_code {
 	case .L:
-		log("", get_uptime(), "Manual scancode key log.")
+		g4n.log("Manual scancode key log = %v", g4n.get_uptime())
 	case .V:
-		toggle_vsync(&game.meta_data, &game.renderer)
+		g4n.toggle_vsync(&game.sdl_intrinsics.meta_data, &game.sdl_intrinsics.renderer)
 	case .F:
-		toggle_fullscreen(&game.meta_data, &game.window)
+		g4n.toggle_fullscreen(&game.sdl_intrinsics.meta_data, &game.sdl_intrinsics.window)
 	}
 
 	switch key_code {
 		case sdl.K_ESCAPE:
-			game.quit = true
+			game.sdl_intrinsics.quit = true
 	}
 
-	handle_player_input_keydown(&game.player, scan_code, key_code)
+	//handle_player_input_keydown(&game.player, scan_code, key_code)
 }
 
 handle_keyup_event :: proc(game: ^Game, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
-	handle_player_input_keyup(&game.player, scan_code, key_code)
+	//handle_player_input_keyup(&game.player, scan_code, key_code)
 }
 
 // Remember that key down and up events are manually retriggered by sdl if a key is helf down.
@@ -39,7 +40,7 @@ game_handle_events :: proc(game: ^Game) {
 	for sdl.PollEvent(&game.event) {
 		#partial switch game.event.type {	
 		case .QUIT:
-			game.quit = true
+			game.sdl_intrinsics.quit = true
 			return
 
 		case .KEY_DOWN:
