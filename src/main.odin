@@ -2,9 +2,11 @@ package main
 import sdl "vendor:sdl3"
 import g4n "../g4n"
 import "core:fmt"
+import "core:mem"
 
 main :: proc() {
 	tracking_allocator := g4n.create_tracking_allocator()
+	context.allocator = mem.tracking_allocator(&tracking_allocator)
 	defer g4n.destroy_tracking_allocator(&tracking_allocator)
 
 	g4n.init_logs("", "ecs_")
@@ -47,8 +49,11 @@ game_render :: proc(game: ^Game) {
 	sdl.RenderClear(game.sdl_intrinsics.renderer)
 
 	sdl.SetRenderDrawColor(game.sdl_intrinsics.renderer, 255, 255, 255, 255)
-	background : ^^sdl.Texture = &game.texture_sets["map"].textures["car.bmp"]
-	//sdl.RenderTexture(game.renderer, background^, nil, &dest)
+	background : ^^sdl.Texture = &game.texture_sets["debug"].textures["map/img/car.bmp"]
+
+	dest := sdl.FRect{0, 0, f32(game.sdl_intrinsics.meta_data.window_width), f32(game.sdl_intrinsics.meta_data.window_height)}
+
+	sdl.RenderTexture(game.sdl_intrinsics.renderer, background^, nil, &dest)
 
 	//start_camera_render(&game.view_camera)
 	//draw_tilemap(game.tile_map, game.tile_info, game.view_camera, game.sdl_intrinsics.renderer)

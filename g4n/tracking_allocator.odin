@@ -12,7 +12,6 @@ create_tracking_allocator :: proc() -> mem.Tracking_Allocator {
 	default_allocator := context.allocator
 	tracking_allocator: mem.Tracking_Allocator
 	mem.tracking_allocator_init(&tracking_allocator, default_allocator)
-	context.allocator = mem.tracking_allocator(&tracking_allocator)
 
 	return tracking_allocator
 }
