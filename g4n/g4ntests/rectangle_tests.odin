@@ -29,6 +29,21 @@ rect_pos_test :: proc(t: ^testing.T) {
 }
 
 @(test)
+rect_with_pos_test :: proc(t: ^testing.T) {
+    a := g4n.IRect{0, 0, 1, 1}
+    b := g4n.FRect{-2.5, 8.88, 1, 1}
+    c := g4n.TRect{2, 1, 1, 1}
+
+    d := g4n.IVector{0, 1}
+    e := g4n.FVector{4.5, 7}
+    f := g4n.TVector{10, 10}
+
+    testing.expect_value(t, g4n.rect_with_position(a, d), g4n.IRect{0, 1, 1, 1})
+    testing.expect_value(t, g4n.rect_with_position(b, e), g4n.FRect{4.5, 7, 1, 1})
+    testing.expect_value(t, g4n.rect_with_position(c, f), g4n.TRect{10, 10, 1, 1})
+}
+
+@(test)
 rect_size_test :: proc(t: ^testing.T) {
     a := g4n.IRect{0, 0, 1, 1}
     b := g4n.FRect{-2.5, 8.88, 4.4, 2}
@@ -210,4 +225,70 @@ rect_vector_distance_test :: proc(t: ^testing.T) {
     testing.expect(t, abs(g4n.rect_vector_dist(b,g4n.FVector{0,-20}) - math.sqrt_f32(9336.9956)) < 0.0001)
 
     testing.expect_value(t, g4n.rect_vector_dist(c,g4n.TVector{4,4}), 0)
+}
+
+@(test)
+test_rect_movement_defining_lines :: proc(t: ^testing.T) {
+    rect := g4n.FRect{ 10, 10, 10, 12}
+
+    pos_1 := g4n.FVector{10, 0}
+    pos_2 := g4n.FVector{15, 5}
+    pos_3 := g4n.FVector{20, 10}
+    pos_4 := g4n.FVector{15, 15}
+    pos_5 := g4n.FVector{10, 20}
+    pos_6 := g4n.FVector{5, 15}
+    pos_7 := g4n.FVector{0, 10}
+    pos_8 := g4n.FVector{5, 5}
+
+    corners_r := g4n.get_rect_corners(rect)
+
+    corners_1 := g4n.get_rect_corners(g4n.rect_with_position(rect, pos_1))
+    corners_2 := g4n.get_rect_corners(g4n.rect_with_position(rect, pos_2))
+    corners_3 := g4n.get_rect_corners(g4n.rect_with_position(rect, pos_3))
+    corners_4 := g4n.get_rect_corners(g4n.rect_with_position(rect, pos_4))
+    corners_5 := g4n.get_rect_corners(g4n.rect_with_position(rect, pos_5))
+    corners_6 := g4n.get_rect_corners(g4n.rect_with_position(rect, pos_6))
+    corners_7 := g4n.get_rect_corners(g4n.rect_with_position(rect, pos_7))
+    corners_8 := g4n.get_rect_corners(g4n.rect_with_position(rect, pos_8))
+
+    ela_1, ml_1, elb_1 := g4n.get_frect_movement_defining_lines(rect, pos_1)
+    ela_2, ml_2, elb_2 := g4n.get_frect_movement_defining_lines(rect, pos_2)
+    ela_3, ml_3, elb_3 := g4n.get_frect_movement_defining_lines(rect, pos_3)
+    ela_4, ml_4, elb_4 := g4n.get_frect_movement_defining_lines(rect, pos_4)
+    ela_5, ml_5, elb_5 := g4n.get_frect_movement_defining_lines(rect, pos_5)
+    ela_6, ml_6, elb_6 := g4n.get_frect_movement_defining_lines(rect, pos_6)
+    ela_7, ml_7, elb_7 := g4n.get_frect_movement_defining_lines(rect, pos_7)
+    ela_8, ml_8, elb_8 := g4n.get_frect_movement_defining_lines(rect, pos_8)
+
+    testing.expect_value(t, ela_1, g4n.FLine{corners_r[.SW], corners_1[.NW]})
+    testing.expect_value(t,  ml_1, g4n.FLine{corners_r[.SE], corners_1[.NE]})
+    testing.expect_value(t, elb_1, g4n.FLine{corners_r[.SE], corners_1[.NE]})
+
+    testing.expect_value(t, ela_2, g4n.FLine{corners_r[.NW], corners_2[.NW]})
+    testing.expect_value(t,  ml_2, g4n.FLine{corners_r[.SW], corners_2[.NE]})
+    testing.expect_value(t, elb_2, g4n.FLine{corners_r[.SE], corners_2[.SE]})
+
+    testing.expect_value(t, ela_3, g4n.FLine{corners_r[.NW], corners_3[.NE]})
+    testing.expect_value(t,  ml_3, g4n.FLine{corners_r[.SW], corners_3[.SE]})
+    testing.expect_value(t, elb_3, g4n.FLine{corners_r[.SW], corners_3[.SE]})
+
+    testing.expect_value(t, ela_4, g4n.FLine{corners_r[.NE], corners_4[.NE]})
+    testing.expect_value(t,  ml_4, g4n.FLine{corners_r[.NW], corners_4[.SE]})
+    testing.expect_value(t, elb_4, g4n.FLine{corners_r[.SW], corners_4[.SW]})
+
+    testing.expect_value(t, ela_5, g4n.FLine{corners_r[.NW], corners_5[.SW]})
+    testing.expect_value(t,  ml_5, g4n.FLine{corners_r[.NE], corners_5[.SE]})
+    testing.expect_value(t, elb_5, g4n.FLine{corners_r[.NE], corners_5[.SE]})
+
+    testing.expect_value(t, ela_6, g4n.FLine{corners_r[.NW], corners_6[.NW]})
+    testing.expect_value(t,  ml_6, g4n.FLine{corners_r[.NE], corners_6[.SW]})
+    testing.expect_value(t, elb_6, g4n.FLine{corners_r[.SE], corners_6[.SE]})
+
+    testing.expect_value(t, ela_7, g4n.FLine{corners_r[.NE], corners_7[.NW]})
+    testing.expect_value(t,  ml_7, g4n.FLine{corners_r[.SE], corners_7[.SW]})
+    testing.expect_value(t, elb_7, g4n.FLine{corners_r[.SE], corners_7[.SW]})
+
+    testing.expect_value(t, ela_8, g4n.FLine{corners_r[.NE], corners_8[.NE]})
+    testing.expect_value(t,  ml_8, g4n.FLine{corners_r[.SE], corners_8[.NW]})
+    testing.expect_value(t, elb_8, g4n.FLine{corners_r[.SW], corners_8[.SW]})
 }
