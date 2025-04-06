@@ -1,59 +1,29 @@
 package g4n
+import olog "core:log"
 
-line_collides_map :: proc( line: FLine, tmap: TileMap, tinfo: TileInfo, line_collision_tier: u8) -> bool {
+line_collides_map :: proc(line: TLine, tmap: TileMap, tinfo: TileInfo, c_tier: u8) -> bool {
+    min_bound, max_bound := get_map_indecies_bound_by_positions(line.a, line.b, tmap.tile_size)
+    for x := min_bound.x; x <= max_bound.x; x += 1 {
+        for y := min_bound.y; y <= max_bound.x; y += 1 {
+            tile_rect := get_map_index_rect(x, y, tmap.tile_size)
 
-    //line := cap_negative_line_coords(line)
-    
-    f_tile_size := f32(tmap.tile_size)
-
-    bounding_pos1 := convert_vector_by_map_dimensions(line.a, f_tile_size)
-    bounding_pos2 := convert_vector_by_map_dimensions(line.b, f_tile_size)
-
-    min_bounding_x := min(bounding_pos1.x, bounding_pos2.x)
-    max_bounding_x := max(bounding_pos1.x, bounding_pos2.x)
-
-    min_bounding_y := min(bounding_pos1.y, bounding_pos2.y)
-    max_bounding_y := max(bounding_pos1.y, bounding_pos2.y)
-
-    tile_rect := FRect{ f_tile_size / 2, f_tile_size / 2, f_tile_size, f_tile_size}
-    for i := min_bounding_x; i <= max_bounding_x; i += 1 {
-        tile_rect.x += f_tile_size
-        for j := min_bounding_y; j <= max_bounding_y; j += 1 {
-            tile_rect.y += f_tile_size
-
-            i := u32(i)
-            j := u32(j)
-
-            if line_intersects_rect(line, tile_rect) && line_collision_tier < tinfo.collision_tier[tmap.set[i][j]] {
+            if line_intersects_rect(line, tile_rect) && c_tier < tinfo.collision_tier[tmap.set[x][y]] {
                 return true
             }
         }
     }
-
     return false
 }
 
-rect_collides_map :: proc(rect: FRect, tmap: TileMap, tinfo: TileInfo, rect_collision_tier: u8) -> bool {
-    f_tile_size := f32(tmap.tile_size)
-
+rect_collides_map :: proc(rect: TRect, tmap: TileMap, tinfo: TileInfo, c_tier: u8) -> bool {
     corners := get_rect_corners(rect)
+    min_bound, max_bound := get_map_indecies_bound_by_positions(corners[.NW], corners[.SE], tmap.tile_size)
 
-    min_bounding_x := convert_vector_by_map_dimensions(corners[.NW], f_tile_size).x
-    max_bounding_x := convert_vector_by_map_dimensions(corners[.NE], f_tile_size).x
+    for x := min_bound.x; x <= max_bound.x; x += 1 {
+        for y := min_bound.y; y <= max_bound.y; y += 1 {
+            tile_rect := get_map_index_rect(x, y, tmap.tile_size)
 
-    min_bounding_y := convert_vector_by_map_dimensions(corners[.NE], f_tile_size).y
-    max_bounding_y := convert_vector_by_map_dimensions(corners[.SE], f_tile_size).y
-
-    tile_rect := FRect{ f_tile_size / 2, f_tile_size / 2, f_tile_size, f_tile_size}
-    for i := min_bounding_x; i <= max_bounding_x; i += 1 {
-        tile_rect.x += f_tile_size
-        for j := min_bounding_y; j <= max_bounding_y; j += 1 {
-            tile_rect.y += f_tile_size
-
-            i := u32(i)
-            j := u32(j)
-
-            if rects_collide(rect, tile_rect) && rect_collision_tier < tinfo.collision_tier[tmap.set[i][j]] {
+            if rects_collide(rect, tile_rect) && c_tier < tinfo.collision_tier[tmap.set[x][y]] {
                 return true
             }
         }
@@ -62,70 +32,60 @@ rect_collides_map :: proc(rect: FRect, tmap: TileMap, tinfo: TileInfo, rect_coll
     return false
 }
 
-tilemap_rect_movement_collision_occurs :: proc(rect: FRect, new_position: FVector, tmap: TileMap, tinfo: TileInfo, rect_collision_tier: u8) -> bool {
-    if get_rect_position(rect) == new_position { return false }
+tilemap_rect_movement_collision_occurs :: proc(rect: TRect, p_pos: TVector, tmap: TileMap, tinfo: TileInfo, c_tier: u8) -> bool {
+    if get_rect_position(rect) == p_pos { return false }
 
     rect := rect
-
-    p_rect := rect
-    p_rect.x = new_position.x
-    p_rect.y = new_position.y
-
-    if rect_collides_map(p_rect, tmap, tinfo, rect_collision_tier) { return true }
+    p_rect := rect_with_position(rect, p_pos)
+    if rect_collides_map(p_rect, tmap, tinfo, c_tier) { return true }
 
     corners := get_rect_corners(rect)
     p_corners := get_rect_corners(p_rect)
 
-    if line_collides_map(FLine{corners[.NE], p_corners[.NE]}, tmap, tinfo, rect_collision_tier) { return true }
-    if line_collides_map(FLine{corners[.NW], p_corners[.NW]}, tmap, tinfo, rect_collision_tier) { return true }
-    if line_collides_map(FLine{corners[.SW], p_corners[.SW]}, tmap, tinfo, rect_collision_tier) { return true }
-    if line_collides_map(FLine{corners[.SE], p_corners[.SE]}, tmap, tinfo, rect_collision_tier) { return true }
+    if line_collides_map(TLine{corners[.NE], p_corners[.NE]}, tmap, tinfo, c_tier) { return true }
+    if line_collides_map(TLine{corners[.NW], p_corners[.NW]}, tmap, tinfo, c_tier) { return true }
+    if line_collides_map(TLine{corners[.SW], p_corners[.SW]}, tmap, tinfo, c_tier) { return true }
+    if line_collides_map(TLine{corners[.SE], p_corners[.SE]}, tmap, tinfo, c_tier) { return true }
 
-    f_tile_size := f32(tmap.tile_size)
-
-    max_x_rect_corners: ^FRectCorners
-    min_x_rect_corners: ^FRectCorners
-    max_y_rect_corners: ^FRectCorners
-    min_y_rect_corners: ^FRectCorners
+    max_x_rect_corners: ^TRectCorners
+    min_x_rect_corners: ^TRectCorners
+    max_y_rect_corners: ^TRectCorners
+    min_y_rect_corners: ^TRectCorners
 
     if corners[.NE].x > p_corners[.NE].x { max_x_rect_corners = &corners }
-    else { max_x_rect_corners = &p_corners }
+    else                                 { max_x_rect_corners = &p_corners }
 
     if corners[.SW].x < p_corners[.SW].x { min_x_rect_corners = &corners }
-    else { min_x_rect_corners = &p_corners }
+    else                                 { min_x_rect_corners = &p_corners }
 
     if corners[.SW].y > p_corners[.SW].y { max_y_rect_corners = &corners }
-    else { max_y_rect_corners = &p_corners }
+    else                                 { max_y_rect_corners = &p_corners }
 
     if corners[.NE].y < p_corners[.NE].y { min_y_rect_corners = &corners }
-    else { min_y_rect_corners = &p_corners }
+    else                                 { min_y_rect_corners = &p_corners }
 
-    max_x_sample := convert_vector_by_map_dimensions(max_x_rect_corners[.NE], f_tile_size).x
-    min_x_sample := convert_vector_by_map_dimensions(min_x_rect_corners[.SW], f_tile_size).x
+    max_x_sample := convert_position_to_map_index(max_x_rect_corners[.NE], tmap.tile_size).x
+    min_x_sample := convert_position_to_map_index(min_x_rect_corners[.SW], tmap.tile_size).x
+    max_y_sample := convert_position_to_map_index(max_y_rect_corners[.SW], tmap.tile_size).y
+    min_y_sample := convert_position_to_map_index(min_y_rect_corners[.NE], tmap.tile_size).y
 
-    max_y_sample := convert_vector_by_map_dimensions(max_y_rect_corners[.SW], f_tile_size).y
-    min_y_sample := convert_vector_by_map_dimensions(min_y_rect_corners[.NE], f_tile_size).y
+    min_bound := TVector{min_x_sample, min_y_sample}
+    max_bound := TVector{max_x_sample, max_y_sample}
 
-    edge_line_a, mid_line, edge_line_b := get_rect_movement_defining_lines(rect, new_position)
+    edge_line_a, mid_line, edge_line_b := get_frect_movement_defining_lines(to_frect(rect), to_fvector(p_pos))
     max_d := lines_distance(edge_line_a, edge_line_b)
 
-    tile_rect := FRect{ f_tile_size / 2, f_tile_size / 2, f_tile_size, f_tile_size}
-    for i := min_x_sample; i <= max_x_sample; i += 1 {
-        tile_rect.x += f_tile_size
-        for j := min_y_sample; j <= max_y_sample; j += 1 {
-            tile_rect.y += f_tile_size
-            if !line_intersects_rect(mid_line, tile_rect) {
-                if line_rectangle_distance(edge_line_a, tile_rect) > max_d || line_rectangle_distance(edge_line_b, tile_rect) > max_d {
-                    //if !rects_collide(rect, tile_rect) && !rects_collide(p_rect, tile_rect) { // might be unneccesary
-                        continue
-                    //}
+    for x := min_bound.x; x <= max_bound.x; x += 1 {
+        for y := min_bound.y; y <= max_bound.y; y += 1 {
+            tile_rect := get_map_index_rect(x, y, tmap.tile_size)
+
+            if !line_intersects_rect(mid_line, to_frect(tile_rect)) {
+                if line_rectangle_distance(edge_line_a, to_frect(tile_rect)) > max_d || line_rectangle_distance(edge_line_b, to_frect(tile_rect)) > max_d {
+                    continue
                 }
             }
-            // test for collision
-            i := u32(i)
-            j := u32(j)
 
-            if rect_collision_tier < tinfo.collision_tier[tmap.set[i][j]] {
+            if c_tier < tinfo.collision_tier[tmap.set[x][y]] {
                 return true
             }
         }
