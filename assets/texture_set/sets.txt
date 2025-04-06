@@ -1,17 +1,26 @@
+$debug&6
+assets/
+entity/img/teto.png
+item/img/pick.png
+map/img/car.bmp
+tile/img/air.png
+tile/img/wall.png
+tile/img/exit.png
+
 $entity&1
-assets/entity/img/
-teto.png
+assets/
+entity/img/teto.png
 
 $item&1
-assets/item/img/
-pick.png
+assets/
+item/img/pick.png
 
 $map&1
-assets/map/img/
-car.bmp
+assets/
+map/img/car.bmp
 
 $tile&3
-assets/tile/img/
-air.png
-wall.png
-exit.png
+assets/
+tile/img/air.png
+tile/img/wall.png
+tile/img/exit.png
