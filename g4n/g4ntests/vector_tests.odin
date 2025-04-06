@@ -20,6 +20,43 @@ vector_add_test :: proc(t: ^testing.T) {
 }
 
 @(test)
+vector_sub_test :: proc(t: ^testing.T) {
+    a := g4n.IVector{5,5}
+    b := g4n.IVECTOR_ZERO
+    c := g4n.IVector{-2,3}
+    d := g4n.FVector{4.0, 5.5}
+    e := g4n.TVector{10, 10}
+
+    testing.expect_value(t, g4n.vector_sub(a, b), a)
+    testing.expect_value(t, g4n.vector_sub(a, c), g4n.IVector{7,2})
+    testing.expect_value(t, g4n.vector_sub(a, g4n.to_ivector(d)), g4n.IVector{1,0})
+    testing.expect_value(t, g4n.vector_sub(d, g4n.to_fvector(a)), g4n.FVector{-1,0.5})
+    testing.expect_value(t, g4n.vector_sub(e, g4n.to_tvector(a)), g4n.TVector{5,5})
+}
+
+@(test)
+vector_abs_test :: proc(t: ^testing.T) {
+    a := g4n.IVector{5,5}
+    b := g4n.IVector{-2,3}
+    c := g4n.FVector{-4.0, -5.5}
+
+    testing.expect_value(t, g4n.vector_abs(a), a)
+    testing.expect_value(t, g4n.vector_abs(b), g4n.IVector{2,3})
+    testing.expect_value(t, g4n.vector_abs(c), g4n.FVector{4.0,5.5})
+}
+
+@(test)
+floor_fvector_test :: proc(t: ^testing.T) {
+    a := g4n.FVector{5,5.21}
+    b := g4n.FVector{-2.999,3}
+    c := g4n.FVector{-4.0, -5.5}
+
+    testing.expect_value(t, g4n.floor_fvector(a), g4n.FVector{5,5})
+    testing.expect_value(t, g4n.floor_fvector(b), g4n.FVector{-3, 3})
+    testing.expect_value(t, g4n.floor_fvector(c), g4n.FVector{-4, -6})
+}
+
+@(test)
 vector_mult_test :: proc(t: ^testing.T) {
     a := g4n.IVector{5,5}
     b := g4n.IVECTOR_ZERO
