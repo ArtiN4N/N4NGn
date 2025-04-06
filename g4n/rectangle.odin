@@ -97,6 +97,13 @@ frect_to_irect :: proc(a: FRect) -> (r: IRect) {
 to_irect :: proc{trect_to_irect, frect_to_irect}
 
 
+toi_sdl_frect :: proc(r: IRect) -> sdl.FRect {
+    return sdl.FRect{f32(r.x), f32(r.y), f32(r.w), f32(r.h)}
+}
+tof_sdl_frect :: proc(r: FRect) -> sdl.FRect {
+    return sdl.FRect{r.x, r.y, r.w, r.h}
+}
+to_sdl_frect :: proc{toi_sdl_frect, tof_sdl_frect}
 
 
 irect_from_nw_se :: proc(nw, se: IVector) -> IRect {
