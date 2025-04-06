@@ -11,6 +11,7 @@ TextureSet :: struct {
     textures: map[string]^sdl.Texture,
     files: [dynamic]string,
     path: string,
+    loaded: bool,
 }
 
 // Just call this proc with a path and whatever files are to be added to the texture set.
@@ -26,6 +27,8 @@ create_texture_set :: proc(path: string, files: ..string) -> TextureSet {
     }
 
     tSet.path = strings.clone(path)
+
+    tSet.loaded = false
 
     return tSet
 }
@@ -47,16 +50,26 @@ load_texture_set :: proc(set: ^TextureSet, renderer: ^^sdl.Renderer, name: strin
 
         sdl.SetTextureScaleMode(set.textures[file], sdl.ScaleMode.NEAREST)
         log("Loaded texture from file %v.", file_path)
+    }
 
-        
-    } 
+    set.loaded = true
 }
 
-destroy_texture_set :: proc(set: ^TextureSet, name: string) {
+unload_texture_set :: proc(set: ^TextureSet, name: string) {
     for key, &value in set.textures {
         sdl.DestroyTexture(value)
         log("Destroyed %v texture.", key)
     }
+
+    clear(&set.textures)
+
+    set.loaded = false
+
+    log("Unloaded texture set %v", name)
+}
+
+destroy_texture_set :: proc(set: ^TextureSet, name: string) {
+    if set.loaded { unload_texture_set(set, name) }
 
     delete(set.textures)
 
