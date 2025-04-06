@@ -12,6 +12,9 @@
     - all valid ecs
     - texture set loading
     - tile loading
+- texture retrevial from texture set
+    - isolate it to a procedure
+    - handle errors on set doesnt exist / file doesnt exist / file isnt loaded
 - texture set loading
     - rewrite large portion, perhaps even foundation
     - get an accurate proc to read wether a texture handle is currently loaded
