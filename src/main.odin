@@ -51,7 +51,7 @@ game_render :: proc(game: ^Game) {
 	sdl.SetRenderDrawColor(game.sdl_intrinsics.renderer, 255, 255, 255, 255)
 	background : ^^sdl.Texture = &game.texture_sets["debug"].textures["map/img/car.bmp"]
 
-	dest := sdl.FRect{0, 0, f32(game.sdl_intrinsics.meta_data.window_width), f32(game.sdl_intrinsics.meta_data.window_height)}
+	dest := g4n.to_sdl_frect(g4n.IRect{0, 0, game.sdl_intrinsics.meta_data.window_width, game.sdl_intrinsics.meta_data.window_height})
 
 	sdl.RenderTexture(game.sdl_intrinsics.renderer, background^, nil, &dest)
 
