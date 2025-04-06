@@ -45,14 +45,15 @@ init_game :: proc(game: ^Game, sdl_i: g4n.SDLIntrinsics) {
 // global INIT 4
 init_load_game :: proc(game: ^Game) {
     // Any texture sets here are likely to be loaded until the closing of the application
-    g4n.load_texture_set(&game.texture_sets["entity"], &game.sdl_intrinsics.renderer, "entity")
-    g4n.load_texture_set(&game.texture_sets["item"], &game.sdl_intrinsics.renderer, "item")
-    g4n.load_texture_set(&game.texture_sets["map"], &game.sdl_intrinsics.renderer, "map")
-    g4n.load_texture_set(&game.texture_sets["tile"], &game.sdl_intrinsics.renderer, "tile")
+    //g4n.load_texture_set(&game.texture_sets["entity"], &game.sdl_intrinsics.renderer, "entity")
+    //g4n.load_texture_set(&game.texture_sets["item"], &game.sdl_intrinsics.renderer, "item")
+    //g4n.load_texture_set(&game.texture_sets["map"], &game.sdl_intrinsics.renderer, "map")
+    //g4n.load_texture_set(&game.texture_sets["tile"], &game.sdl_intrinsics.renderer, "tile")
+    g4n.load_texture_set(&game.texture_sets["debug"], &game.sdl_intrinsics.renderer, "debug")
 
     //init_player_entity(&game.player, &game.texture_sets["entity"].textures["teto.png"])
 
-    g4n.init_tile_info(&game.tile_info, &game.texture_sets)
+    game.tile_info = g4n.create_tile_info(&game.texture_sets)
     g4n.init_tilemap(&game.tile_map, game.tile_info)
     
     game.ecs_state = ecs.create_ecs_state()
