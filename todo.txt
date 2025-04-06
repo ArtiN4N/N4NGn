@@ -2,17 +2,16 @@
 -- comments
     - basically everything in g4n
     - basically everything in ecs
+- error handling
+    - negative values when dealing with maps (physics done in floats)
+    - nil values for pointers
 - tests
+    - cap_negative_line_coords
+    
     - finish physics util
     - all valid ecs
     - texture set loading
     - tile loading
-    - cap_negative_line_coords
-    - floor_fvector
-    - tilemap_rect_movement_collision_occurs
-    - get_rect_movement_defining_lines
-    - vector_sub
-    - vector_abs
 - texture set loading
     - rewrite large portion, perhaps even foundation
     - get an accurate proc to read wether a texture handle is currently loaded
