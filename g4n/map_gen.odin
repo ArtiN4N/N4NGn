@@ -6,6 +6,61 @@ import "core:strconv"
 import "core:unicode/utf8"
 import "core:math/rand"
 
+init_map_set :: proc(tmap: ^TileMap) {
+    tmap.set = make([dynamic][dynamic]Tile, tmap.width_tiles, tmap.width_tiles)
+    for i in 0..<tmap.width_tiles {
+        tmap.set[i] = make([dynamic]Tile, tmap.height_tiles, tmap.height_tiles)
+
+        for j in 0..<tmap.height_tiles {
+            tmap.set[i][j] = .WALL
+        }
+    }
+}
+
+load_map_from_file :: proc(fname: string, tile_size: u32) -> (loaded: TileMap) {
+    loaded.tile_size = tile_size
+
+    slice := [?]string { "assets/map/dat/", fname }
+    file_path := strings.concatenate(slice[:])
+    defer delete(file_path)
+
+    data, ok := os.read_entire_file_from_filename(file_path)
+    if !ok {
+		log("Error! Could not load map from file")
+        return
+	}
+    defer delete(data)
+
+    
+
+    row := 0
+    it := string(data)
+	for line in strings.split_lines_iterator(&it) {
+        if line[0] == '$' {
+            string_data := strings.split(line[1:], "&")
+            defer delete(string_data)
+
+            loaded.width_tiles = u32(strconv.atoi(string_data[0]))
+            loaded.height_tiles = u32(strconv.atoi(string_data[1]))
+
+            init_map_set(&loaded)
+            continue
+        }
+
+        for codepoint, col in line {
+            tile_runes : [1]rune = {codepoint}
+            str := utf8.runes_to_string(tile_runes[:])
+            defer delete(str)
+            tile := cast(Tile) strconv.atoi(str)
+            loaded.set[col][row] = tile
+        }
+
+        row += 1
+    }
+
+    return
+}
+
 load_map_patterns :: proc(name: string) -> [2][16][16]Tile {
     ret : [2][16][16]Tile = {}
 
@@ -21,17 +76,17 @@ load_map_patterns :: proc(name: string) -> [2][16][16]Tile {
     defer delete(data)
 
     type := 0
-    col := 0
+    row := 0
 
     it := string(data)
 	for line in strings.split_lines_iterator(&it) {
-        if col == 16 {
-            col = 0
+        if row == 16 {
+            row = 0
             type += 1
             continue
         }
 
-        for codepoint, row in line {
+        for codepoint, col in line {
             tile_runes : [1]rune = {codepoint}
             str := utf8.runes_to_string(tile_runes[:])
             defer delete(str)
@@ -39,7 +94,7 @@ load_map_patterns :: proc(name: string) -> [2][16][16]Tile {
             ret[type][col][row] = tile
         }
 
-        col += 1
+        row += 1
     }
 
     return ret
@@ -49,14 +104,7 @@ generate_random_map :: proc(tmap: ^TileMap, info: TileInfo) {
     tmap.width_tiles = 64
     tmap.height_tiles = 32
 
-    tmap.set = make([dynamic][dynamic]Tile, tmap.width_tiles, tmap.width_tiles)
-    for i in 0..<tmap.width_tiles {
-        tmap.set[i] = make([dynamic]Tile, tmap.height_tiles, tmap.height_tiles)
-
-        for j in 0..<tmap.height_tiles {
-            tmap.set[i][j] = .WALL
-        }
-    }
+    init_map_set(tmap)
 
     patterns := load_map_patterns("basic_patterns.txt")
 
@@ -84,5 +132,5 @@ generate_random_map :: proc(tmap: ^TileMap, info: TileInfo) {
 
     chosen_spawn := rand.choice(possible_player_spawns[:])
 
-    tmap.player_spawn = chosen_spawn
+    //tmap.player_spawn = chosen_spawn
 }
