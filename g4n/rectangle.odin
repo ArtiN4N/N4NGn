@@ -126,6 +126,25 @@ trect_from_nw_se :: proc(nw, se: TVector) -> TRect {
 rect_from_nw_se :: proc{irect_from_nw_se, frect_from_nw_se, trect_from_nw_se}
 
 
+
+
+irect_with_position :: proc(r: IRect, p: IVector) -> IRect {
+    return { p.x, p.y, r.w, r.h }
+}
+
+frect_with_position :: proc(r: FRect, p: FVector) -> FRect {
+    return { p.x, p.y, r.w, r.h }
+}
+
+trect_with_position :: proc(r: TRect, p: TVector) -> TRect {
+    return { p.x, p.y, r.w, r.h }
+}
+
+rect_with_position :: proc{irect_with_position, frect_with_position, trect_with_position}
+
+
+
+
 get_irect_position :: proc(r: IRect) -> IVector {
     return { r.x, r.y }
 }
@@ -429,7 +448,7 @@ trect_vector_dist :: proc(a: TRect, b: TVector) -> f32 {
 
 rect_vector_dist :: proc{irect_vector_dist, frect_vector_dist, trect_vector_dist}
 
-get_rect_movement_defining_lines :: proc(rect: FRect, p_pos: FVector) -> (edge_line_a, mid_line, edge_line_b: FLine) {
+get_frect_movement_defining_lines :: proc(rect: FRect, p_pos: FVector) -> (edge_line_a, mid_line, edge_line_b: FLine) {
     p_rect := rect
     p_rect.x = p_pos.x
     p_rect.y = p_pos.y
@@ -464,7 +483,7 @@ get_rect_movement_defining_lines :: proc(rect: FRect, p_pos: FVector) -> (edge_l
 
         return
     }
-    if direct_north_movement {
+    if direct_west_movement {
         edge_line_a = FLine{corners[.NE], p_corners[.NW]}
         edge_line_b = FLine{corners[.SE], p_corners[.SW]}
         mid_line = FLine{corners[.SE], p_corners[.SW]}
@@ -500,7 +519,7 @@ get_rect_movement_defining_lines :: proc(rect: FRect, p_pos: FVector) -> (edge_l
         return
     }
 
-    // NE quadrant
+    // NW quadrant
     edge_line_a = FLine{corners[.NE], p_corners[.NE]}
     edge_line_b = FLine{corners[.SW], p_corners[.SW]}
     mid_line = FLine{corners[.SE], p_corners[.NW]}
