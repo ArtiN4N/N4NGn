@@ -14,13 +14,18 @@ Camera :: struct {
 // Logically, this means the camera's anchor is in the center of the camera.
 // A custom offset can be applied, which is added on top of this default size-based offset.
 create_camera :: proc(width, height: i32, anchor: ^IVector, offset: IVector = IVECTOR_ZERO) -> (camera: Camera) {
-    camera.box = { -width / 2, -height / 2, width, height }
+    camera.box = { 0, 0, width, height }
     camera.box = rect_add_vector(camera.box, offset)
     camera.anchor = anchor
 
     log("Created camera.")
 
     return
+}
+
+get_camera_shift_position :: proc(cam: Camera) -> IVector {
+    size_offset := vector_div_scalar(IVector{cam.box.w - 1, cam.box.h - 1}, 2)
+    return vector_add(size_offset, -cam.anchor^)
 }
 
 get_camera_real_position :: proc(cam: Camera) -> IVector {
@@ -35,7 +40,7 @@ get_camera_real_rectangle :: proc(cam: Camera) -> IRect {
 is_point_in_camera :: proc(cam: Camera, pos: IVector) -> bool {
     return rect_contains_vector(get_camera_real_rectangle(cam), pos)
 }
-
+import "core:fmt"
 is_rectangle_in_camera :: proc(cam: Camera, rect: IRect) -> bool {
     return rects_collide(get_camera_real_rectangle(cam), rect)
 }
@@ -47,8 +52,8 @@ render_texture_via_camera :: proc(cam: Camera, renderer: ^sdl.Renderer, tex: ^sd
 
     tex_src, tex_dest := tex_src, tex_dest
 
-    real_pos := get_camera_real_position(cam)
-    rect_add_vector(tex_dest^, -real_pos)
+    real_pos := get_camera_shift_position(cam)
+    tex_dest^ = rect_add_vector(tex_dest^, real_pos)
 
     fsrc := FRECT_ZERO
     fdest := FRECT_ZERO
@@ -57,11 +62,11 @@ render_texture_via_camera :: proc(cam: Camera, renderer: ^sdl.Renderer, tex: ^sd
     draw_dest : ^sdl.FRect = nil
 
     if tex_src != nil {
-        fsrc = to_frect(tex_src^)
+        fsrc = to_sdl_frect(tex_src^)
         draw_src = &fsrc
     }
     if tex_dest != nil {
-        fdest = to_frect(tex_dest^)
+        fdest = to_sdl_frect(tex_dest^)
         draw_dest = &fdest
     }
 
