@@ -5,6 +5,7 @@ import "core:os"
 import "core:strings"
 import sdl "vendor:sdl3"
 import g4n "../g4n"
+import ecs "../ecs"
 
 // Note that key handling events use both scancodes and keycodes.
 // Scancodes refer to the physical location on keyboard, and dont care about what a key is called.
@@ -27,11 +28,11 @@ handle_keydown_event :: proc(game: ^Game, scan_code: sdl.Scancode, key_code: sdl
 			game.sdl_intrinsics.quit = true
 	}
 
-	//handle_player_input_keydown(&game.player, scan_code, key_code)
+	handle_player_input_keydown(&game.ecs_state, game.player, scan_code, key_code)
 }
 
 handle_keyup_event :: proc(game: ^Game, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
-	//handle_player_input_keyup(&game.player, scan_code, key_code)
+	handle_player_input_keyup(&game.ecs_state, game.player, scan_code, key_code)
 }
 
 // Remember that key down and up events are manually retriggered by sdl if a key is helf down.
