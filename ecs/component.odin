@@ -11,6 +11,14 @@ ComponentCollection :: struct(ComponentType: typeid) {
     sparse_set: [MAX_ENTITIES]u32,
 }
 
+get_entities_component_idx :: proc(collec: ComponentCollection($T), entity: EntityID) -> u32 {
+    return collec.sparse_set[entity]
+}
+
+get_entities_component :: proc(collec: ^ComponentCollection($T), entity: EntityID) -> ^T {
+    return &collec.components[get_entities_component_idx(collec^, entity)]
+}
+
 create_component_collection :: proc($T: typeid) -> (collection: ComponentCollection(T)) {
     collection.components = {}
     queue.init(&collection.free_components)
