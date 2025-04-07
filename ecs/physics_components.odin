@@ -7,8 +7,7 @@ PhysicsComponent :: struct {
     //velocity: g4n.FVector,
     //acceleration: g4n.FVector,
     velo_forces: [dynamic]g4n.Force,
-    accel_forces: [dynamic]g4n.Force,
-    accum_accel_velo: g4n.Force,
+    accel_forces: [dynamic]g4n.CompoundForce,
 
     suspended: bool,
     mass: f32,
@@ -20,15 +19,13 @@ PhysicsComponent :: struct {
 create_physics_component_data :: proc(
     anchor: ^g4n.FVector, width, height, body_anchor_x, body_anchor_y, mass: f32, bounciness: u8
 ) -> (component: PhysicsComponent) {
-    component.body = g4n.make_physics_body(anchor, width, height, body_anchor_x, body_anchor_y)
+    component.body = g4n.make_physics_body(anchor, body_anchor_x, body_anchor_y, width, height)
 
     //component.velocity = g4n.FVECTOR_ZERO
     //component.acceleration = g4n.FVECTOR_ZERO
 
     component.velo_forces = make([dynamic]g4n.Force)
-    component.accel_forces = make([dynamic]g4n.Force)
-
-    component.accum_accel_velo = g4n.Force{g4n.FVECTOR_ZERO, 0.5}
+    component.accel_forces = make([dynamic]g4n.CompoundForce)
 
     component.suspended = false
     component.mass = mass
@@ -40,21 +37,26 @@ destroy_physics_component_data :: proc(component: ^PhysicsComponent) {
     delete(component.accel_forces)
 }
 
+add_physics_component_vel_force :: proc(phys_c: ^PhysicsComponent, f: g4n.Force) -> ^g4n.Force {
+    append(&phys_c.velo_forces, f)
+    return &phys_c.velo_forces[len(phys_c.velo_forces) - 1]
+}
+
+add_physics_component_accel_force :: proc(phys_c: ^PhysicsComponent, f: g4n.CompoundForce) -> ^g4n.CompoundForce {
+    i := append(&phys_c.accel_forces, f)
+    return &phys_c.accel_forces[len(phys_c.accel_forces) - 1]
+}
+
 update_physics_component :: proc(phys_c: ^PhysicsComponent, pos_c: ^PositionComponent, dt: f32) {
     velocity := g4n.FVECTOR_ZERO
-    acceleration := g4n.FVECTOR_ZERO
 
     for &accel in phys_c.accel_forces {
-        acceleration += g4n.apply_force(&accel) / phys_c.mass
+        velocity += g4n.apply_compound_force(&accel, dt) / phys_c.mass
     }
-
-    phys_c.accum_accel_velo.direction += acceleration * dt
 
     for &velo in phys_c.velo_forces {
-        velocity += g4n.apply_force(&velo)
+        velocity += g4n.apply_force(&velo, dt)
     }
-
-    velocity += g4n.apply_force(&phys_c.accum_accel_velo)
 
     pos_c.physics_position += velocity * dt
 }
