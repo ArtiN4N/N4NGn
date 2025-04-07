@@ -32,6 +32,16 @@ def ecs_state_struct_plate():
         ret += f"{lower_with_underscore(component)}_cc: ComponentCollection({component}Component),\n"
     return ret[:-1]
 
+def comp_id_enum():
+    ret = ""
+    i = 0
+    for component in components:
+        if i > 0:
+            ret += "\t"
+        i += 1
+        ret += f"{component}_CE,\n"
+    return ret[:-1]
+
 def destroy_ecs_component_data_plate():
     ret = ""
     i = 0
@@ -49,17 +59,7 @@ def destroy_ecs_state_plate():
         if i > 0:
             ret += "\t"
         i += 1
-        ret += f"destroy_component_collection(&ecs_state.{lower_with_underscore(component)}_cc)\n"
-    return ret[:-1]
-
-def stock_ecs_state_component_ids_plate():
-    ret = ""
-    i = 0
-    for component in components:
-        if i > 0:
-            ret += "\t"
-        i += 1
-        ret += f"add_ecs_state_component_id(state, {component}Component, &comp_id_counter)\n"
+        ret += f"destroy_component_collection(ecs_state^, &ecs_state.{lower_with_underscore(component)}_cc)\n"
     return ret[:-1]
 
 def stock_ecs_state_ccs_plate():
@@ -72,6 +72,17 @@ def stock_ecs_state_ccs_plate():
         ret += f"state.{lower_with_underscore(component)}_cc = create_component_collection({component}Component)\n"
     return ret[:-1]
 
+def get_component_id_lookup():
+    ret = ""
+    i = 0
+    for component in components:
+        if i > 0:
+            ret += "\t"
+        i += 1
+        ret += f'''case {component}Component:
+        return .{component}_CE\n'''
+    return ret[:-1]
+
 def destroy_entity_switch_plate():
     ret = ""
     i = 0
@@ -79,7 +90,7 @@ def destroy_entity_switch_plate():
         if i > 0:
             ret += "\t\t\t"
         i += 1
-        ret += f'''case {component}Component:
+        ret += f'''case .{component}_CE:
                 destroy_ecs_component(ecs_state, entity, &ecs_state.{lower_with_underscore(component)}_cc)\n'''
     return ret[:-1]
 
@@ -94,9 +105,11 @@ ECSState :: struct {{
 
     {ecs_state_struct_plate()}
 
-    component_ids: map[typeid]ComponentID,
+    entity_bitsets: [MAX_ENTITIES]bit_set[ComponentID],
+}}
 
-    entity_bitsets: map[EntityID]bit_set[0..<MAX_COMPONENTS; u128],
+ComponentID :: enum {{
+    {comp_id_enum()}
 }}
 
 destroy_ecs_component_data :: proc{{
@@ -107,19 +120,23 @@ destroy_ecs_component_collections :: proc(ecs_state: ^ECSState) {{
     {destroy_ecs_state_plate()}
 }}
 
-stock_ecs_state_component_ids :: proc(state: ^ECSState) {{
-    comp_id_counter := 0
-    {stock_ecs_state_component_ids_plate()}
-}}
-
 stock_ecs_state_component_collections :: proc(state: ^ECSState) {{
     {stock_ecs_state_ccs_plate()}
 }}
 
+get_component_id :: proc(T: typeid) -> ComponentID {{
+	switch T {{
+    {get_component_id_lookup()}
+	}}
+
+    // need to replace this with error or default case
+	return .Position_CE
+}}
+
 destroy_entity :: proc(ecs_state: ^ECSState, entity: EntityID) {{
-    for key, value in ecs_state.component_ids {{
-        if value in ecs_state.entity_bitsets[entity] {{
-            switch key {{
+    for e in ComponentID {{
+        if e in ecs_state.entity_bitsets[entity] {{
+            switch e {{
             {destroy_entity_switch_plate()}
             }}
         }}

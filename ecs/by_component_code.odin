@@ -14,12 +14,25 @@ ECSState :: struct {
 	movement_cc: ComponentCollection(MovementComponent),
 	humanoid_movement_cc: ComponentCollection(HumanoidMovementComponent),
 	jumping_cc: ComponentCollection(JumpingComponent),
+	position_cc: ComponentCollection(PositionComponent),
 	render_cc: ComponentCollection(RenderComponent),
 	render_physics_cc: ComponentCollection(RenderPhysicsComponent),
 
-    component_ids: map[typeid]ComponentID,
+    entity_bitsets: [MAX_ENTITIES]bit_set[ComponentID],
+}
 
-    entity_bitsets: map[EntityID]bit_set[0..<MAX_COMPONENTS; u128],
+ComponentID :: enum {
+    Physics_CE,
+	EdgeGrab_CE,
+	Gravity_CE,
+	MovementDirection_CE,
+	CoyoteTime_CE,
+	Movement_CE,
+	HumanoidMovement_CE,
+	Jumping_CE,
+	Position_CE,
+	Render_CE,
+	RenderPhysics_CE,
 }
 
 destroy_ecs_component_data :: proc{
@@ -31,35 +44,23 @@ destroy_ecs_component_data :: proc{
 	destroy_movement_component_data,
 	destroy_humanoid_movement_component_data,
 	destroy_jumping_component_data,
+	destroy_position_component_data,
 	destroy_render_component_data,
 	destroy_render_physics_component_data,
 }
 
 destroy_ecs_component_collections :: proc(ecs_state: ^ECSState) {
-    destroy_component_collection(&ecs_state.physics_cc)
-	destroy_component_collection(&ecs_state.edge_grab_cc)
-	destroy_component_collection(&ecs_state.gravity_cc)
-	destroy_component_collection(&ecs_state.movement_direction_cc)
-	destroy_component_collection(&ecs_state.coyote_time_cc)
-	destroy_component_collection(&ecs_state.movement_cc)
-	destroy_component_collection(&ecs_state.humanoid_movement_cc)
-	destroy_component_collection(&ecs_state.jumping_cc)
-	destroy_component_collection(&ecs_state.render_cc)
-	destroy_component_collection(&ecs_state.render_physics_cc)
-}
-
-stock_ecs_state_component_ids :: proc(state: ^ECSState) {
-    comp_id_counter := 0
-    add_ecs_state_component_id(state, PhysicsComponent, &comp_id_counter)
-	add_ecs_state_component_id(state, EdgeGrabComponent, &comp_id_counter)
-	add_ecs_state_component_id(state, GravityComponent, &comp_id_counter)
-	add_ecs_state_component_id(state, MovementDirectionComponent, &comp_id_counter)
-	add_ecs_state_component_id(state, CoyoteTimeComponent, &comp_id_counter)
-	add_ecs_state_component_id(state, MovementComponent, &comp_id_counter)
-	add_ecs_state_component_id(state, HumanoidMovementComponent, &comp_id_counter)
-	add_ecs_state_component_id(state, JumpingComponent, &comp_id_counter)
-	add_ecs_state_component_id(state, RenderComponent, &comp_id_counter)
-	add_ecs_state_component_id(state, RenderPhysicsComponent, &comp_id_counter)
+    destroy_component_collection(ecs_state^, &ecs_state.physics_cc)
+	destroy_component_collection(ecs_state^, &ecs_state.edge_grab_cc)
+	destroy_component_collection(ecs_state^, &ecs_state.gravity_cc)
+	destroy_component_collection(ecs_state^, &ecs_state.movement_direction_cc)
+	destroy_component_collection(ecs_state^, &ecs_state.coyote_time_cc)
+	destroy_component_collection(ecs_state^, &ecs_state.movement_cc)
+	destroy_component_collection(ecs_state^, &ecs_state.humanoid_movement_cc)
+	destroy_component_collection(ecs_state^, &ecs_state.jumping_cc)
+	destroy_component_collection(ecs_state^, &ecs_state.position_cc)
+	destroy_component_collection(ecs_state^, &ecs_state.render_cc)
+	destroy_component_collection(ecs_state^, &ecs_state.render_physics_cc)
 }
 
 stock_ecs_state_component_collections :: proc(state: ^ECSState) {
@@ -71,33 +72,66 @@ stock_ecs_state_component_collections :: proc(state: ^ECSState) {
 	state.movement_cc = create_component_collection(MovementComponent)
 	state.humanoid_movement_cc = create_component_collection(HumanoidMovementComponent)
 	state.jumping_cc = create_component_collection(JumpingComponent)
+	state.position_cc = create_component_collection(PositionComponent)
 	state.render_cc = create_component_collection(RenderComponent)
 	state.render_physics_cc = create_component_collection(RenderPhysicsComponent)
 }
 
+get_component_id :: proc(T: typeid) -> ComponentID {
+	switch T {
+    case PhysicsComponent:
+        return .Physics_CE
+	case EdgeGrabComponent:
+        return .EdgeGrab_CE
+	case GravityComponent:
+        return .Gravity_CE
+	case MovementDirectionComponent:
+        return .MovementDirection_CE
+	case CoyoteTimeComponent:
+        return .CoyoteTime_CE
+	case MovementComponent:
+        return .Movement_CE
+	case HumanoidMovementComponent:
+        return .HumanoidMovement_CE
+	case JumpingComponent:
+        return .Jumping_CE
+	case PositionComponent:
+        return .Position_CE
+	case RenderComponent:
+        return .Render_CE
+	case RenderPhysicsComponent:
+        return .RenderPhysics_CE
+	}
+
+    // need to replace this with error or default case
+	return .Position_CE
+}
+
 destroy_entity :: proc(ecs_state: ^ECSState, entity: EntityID) {
-    for key, value in ecs_state.component_ids {
-        if value in ecs_state.entity_bitsets[entity] {
-            switch key {
-            case PhysicsComponent:
+    for e in ComponentID {
+        if e in ecs_state.entity_bitsets[entity] {
+            switch e {
+            case .Physics_CE:
                 destroy_ecs_component(ecs_state, entity, &ecs_state.physics_cc)
-			case EdgeGrabComponent:
+			case .EdgeGrab_CE:
                 destroy_ecs_component(ecs_state, entity, &ecs_state.edge_grab_cc)
-			case GravityComponent:
+			case .Gravity_CE:
                 destroy_ecs_component(ecs_state, entity, &ecs_state.gravity_cc)
-			case MovementDirectionComponent:
+			case .MovementDirection_CE:
                 destroy_ecs_component(ecs_state, entity, &ecs_state.movement_direction_cc)
-			case CoyoteTimeComponent:
+			case .CoyoteTime_CE:
                 destroy_ecs_component(ecs_state, entity, &ecs_state.coyote_time_cc)
-			case MovementComponent:
+			case .Movement_CE:
                 destroy_ecs_component(ecs_state, entity, &ecs_state.movement_cc)
-			case HumanoidMovementComponent:
+			case .HumanoidMovement_CE:
                 destroy_ecs_component(ecs_state, entity, &ecs_state.humanoid_movement_cc)
-			case JumpingComponent:
+			case .Jumping_CE:
                 destroy_ecs_component(ecs_state, entity, &ecs_state.jumping_cc)
-			case RenderComponent:
+			case .Position_CE:
+                destroy_ecs_component(ecs_state, entity, &ecs_state.position_cc)
+			case .Render_CE:
                 destroy_ecs_component(ecs_state, entity, &ecs_state.render_cc)
-			case RenderPhysicsComponent:
+			case .RenderPhysics_CE:
                 destroy_ecs_component(ecs_state, entity, &ecs_state.render_physics_cc)
             }
         }
