@@ -24,6 +24,8 @@ Game :: struct {
     tile_info: g4n.TileInfo,
 
     view_camera: g4n.Camera,
+
+    player: ecs.EntityID,
 }
 
 
@@ -36,8 +38,6 @@ init_game :: proc(game: ^Game, sdl_i: g4n.SDLIntrinsics) {
 
     // Manual procedures are used to create texture sets
     g4n.init_texture_sets(&game.texture_sets)
-
-    //game.view_camera = g4n.create_camera(game.sdl_intrinsics.meta_data.window_width, game.sdl_intrinsics.meta_data.window_height, &game.player.discrete_position)
 
     g4n.log("Finished global init 3.")
 }
@@ -57,6 +57,35 @@ init_load_game :: proc(game: ^Game) {
     g4n.init_tilemap(&game.tile_map, game.tile_info)
     
     game.ecs_state = ecs.create_ecs_state()
+
+    ok : bool
+    game.player, ok = ecs.create_entity(&game.ecs_state)
+    ecs.attach_ecs_component(&game.ecs_state, game.player, ecs.PositionComponent, &game.ecs_state.position_cc, ecs.create_position_component_data(10, 10))
+
+    game.view_camera = g4n.create_camera(
+        game.sdl_intrinsics.meta_data.window_width, game.sdl_intrinsics.meta_data.window_height,
+        &game.ecs_state.position_cc.components[game.ecs_state.position_cc.sparse_set[game.player]].logic_position
+    )
+
+    ecs.attach_ecs_component(
+        &game.ecs_state, game.player, ecs.PhysicsComponent, &game.ecs_state.physics_cc,
+        ecs.create_physics_component_data(&game.ecs_state.position_cc.components[game.ecs_state.position_cc.sparse_set[game.player]].physics_position, 20, 40, 0, 0, 10, 0)
+    )
+    ecs.attach_ecs_component(
+        &game.ecs_state, game.player, ecs.RenderComponent, &game.ecs_state.render_cc,
+        ecs.create_render_component_data(20, 40, game.texture_sets["debug"].textures["entity/img/teto.png"], true, &game.view_camera)
+    )
+    ecs.attach_ecs_component(
+        &game.ecs_state, game.player, ecs.RenderPhysicsComponent, &game.ecs_state.render_physics_cc,
+        ecs.create_render_physics_component_data(sdl.Color{255, 0, 0, 255})
+    )
+
+    force := g4n.CompoundForce{g4n.FVector{0, 4000}, g4n.FVector{0, 0}, 0, 10}
+	ecs.add_physics_component_accel_force(
+		&game.ecs_state.physics_cc.components[game.ecs_state.physics_cc.sparse_set[game.player]], force
+	)
+
+    if !ok { g4n.log("Uh oh! couldnt create player!.") }
 
     g4n.log("Finished global init 4.")
 }
