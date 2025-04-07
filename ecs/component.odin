@@ -2,37 +2,43 @@ package ecs
 import sdl "vendor:sdl3"
 import queue "core:container/queue"
 
-ComponentID :: int
 MAX_COMPONENTS :: 128
 
 ComponentCollection :: struct(ComponentType: typeid) {
     components: [MAX_ENTITIES]ComponentType,
     free_components: queue.Queue(u32),
-    count: u32,
-    sparse_set: map[EntityID]u32,
+    highest_idx: u32,
+    sparse_set: [MAX_ENTITIES]u32,
 }
 
 create_component_collection :: proc($T: typeid) -> (collection: ComponentCollection(T)) {
     collection.components = {}
     queue.init(&collection.free_components)
-    collection.count = 0
-    collection.sparse_set = make(map[EntityID]u32)
+    collection.highest_idx = 0
     return
 }
 
-destroy_component_collection :: proc(collection: ^ComponentCollection($T)) {
-    delete(collection.sparse_set)
-    queue.destroy(&collection.free_components)
-    for i in 0..<collection.count {
+destroy_component_collection :: proc(ecs_state: ECSState, collection: ^ComponentCollection($T)) {
+    l := queue.len(collection.free_components)
+    skip_eles : [MAX_ENTITIES]bool
+    for i in 0..<l {
+        queue.peek_front(&collection.free_components)
+        skip_eles[i] = true
+    }
+
+    for i in 0..<collection.highest_idx {
+        if skip_eles[i] { continue }
         destroy_ecs_component_data(&collection.components[i])
     }
+
+    queue.destroy(&collection.free_components)
 }
 
 new_ecs_component_index :: proc(cc: ^ComponentCollection($T)) -> u32 {
-    if queue.len(cc.free_components) > 0 { return queue.pop_front(cc.free_components) }
+    if queue.len(cc.free_components) > 0 { return queue.pop_front(&cc.free_components) }
     
-    ret_idx := cc.count
-    cc.count += 1
+    ret_idx := cc.highest_idx
+    cc.highest_idx += 1
     return ret_idx
 }
 
@@ -40,10 +46,10 @@ attach_ecs_component :: proc(
     ecs_state: ^ECSState, entity: EntityID,
     $T: typeid, cc: ^ComponentCollection(T), component: T = {}
 ) {
-    idx := new_ecs_component_index(T, &cc)
+    idx := new_ecs_component_index(cc)
     cc.components[idx] = component
     cc.sparse_set[entity] = idx
-    ecs_state.entity_bitsets[entity] += {ecs_state.component_ids[T]}
+    ecs_state.entity_bitsets[entity] += {get_component_id(T)}
 }
 
 destroy_ecs_component :: proc(
@@ -52,9 +58,7 @@ destroy_ecs_component :: proc(
 ) {
     idx := cc.sparse_set[entity]
     destroy_ecs_component_data(&cc.components[idx])
-    delete_key(&cc.sparse_set, entity)
-    ecs_state.entity_bitsets[entity] -= {ecs_state.component_ids[T]}
-    cc.count -= 1
+    ecs_state.entity_bitsets[entity] -= {get_component_id(T)}
     
     queue.append_elem(&cc.free_components, idx)
 }
