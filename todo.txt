@@ -24,3 +24,4 @@
     - for example, if using a tile map, and there are 1000 tiles for the current loaded area, instead of drawing all 1000 tiles (or what can fit in the screen) every frame,
     instead create a texture in sdl of all 1000 tiles, and draw the big map texture offset by position
 - ecs
+    - right now you can just index the component arrays and such. put ti thru a function and handle errors
