@@ -94,8 +94,8 @@ change_meta_window_size :: proc(md: ^SDLMetaData, window: ^^sdl.Window, new_widt
     log("Window size set to %v,%v.", new_width, new_height)
 }
 
-meta_as_window_rect :: proc(md: SDLMetaData) -> (v: IRect) {
-    return {0, 0, md.window_width, md.window_height}
+meta_as_window_sdlrect :: proc(md: SDLMetaData) -> (v: IRect) {
+    return {(md.window_width - 1) / 2, (md.window_height - 1) / 2, md.window_width, md.window_height}
 }
 
 meta_as_window_size_vector :: proc(md: SDLMetaData) -> (v: IVector) {
