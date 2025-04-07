@@ -141,11 +141,45 @@ destroy_movement_component_data :: proc(component: ^MovementComponent) {}
 HumanoidMovementComponent :: struct {
     walk_speed: f32,
     run_speed: f32,
+    running: bool,
+    x_move_direction: i32,
+    last_moved_right: bool,
+}
+
+humanoid_move_component_get_move_vector :: proc(move_c: HumanoidMovementComponent) -> g4n.FVector {
+    speed := move_c.walk_speed
+    if move_c.running { speed = move_c.run_speed }
+    return g4n.FVector{f32(move_c.x_move_direction) * speed, 0}
+}
+
+humanoid_move_component_on_physics :: proc(move_c: ^HumanoidMovementComponent, phys_c: ^PhysicsComponent) {
+    force_dir := humanoid_move_component_get_move_vector(move_c^)
+
+    if move_c.last_moved_right && force_dir.x < 0 { move_c.last_moved_right = false }
+    else if !move_c.last_moved_right && force_dir.x > 0 { move_c.last_moved_right = true }
+
+    vel_force := g4n.Force{force_dir, -1}
+    add_physics_component_vel_force(phys_c, vel_force)
+}
+
+set_humanoid_move_component_running :: proc(component: ^HumanoidMovementComponent, running: bool) {
+    component.running = running
+}
+
+set_humanoid_move_component_xdir :: proc(component: ^HumanoidMovementComponent, xdir: i32) {
+    component.x_move_direction = xdir
+}
+
+set_humanoid_move_component_last_moved :: proc(component: ^HumanoidMovementComponent, last_moved: bool) {
+    component.last_moved_right = last_moved
 }
 
 create_humanoid_movement_component_data :: proc(walk_s, run_s: f32) -> (component: HumanoidMovementComponent) {
     component.walk_speed = walk_s
     component.run_speed = run_s
+    component.running = false
+    component.x_move_direction = 0
+    component.last_moved_right = true
     return
 }
 destroy_humanoid_movement_component_data :: proc(component: ^HumanoidMovementComponent) {}
