@@ -9,6 +9,7 @@ DECAY_MINIMUM :: 0.05
 
 get_decay_factor :: proc(pct: DecayPct) -> f32 {
     if pct == 0 { return 1 }
+    if pct < 0 { return 0 }
     return 1 - (1 / pct)
 }
 
