@@ -26,9 +26,7 @@ create_render_component_data :: proc(
 destroy_render_component_data :: proc(component: ^RenderComponent) {}
 
 render_render_component :: proc(renderer: ^sdl.Renderer, rend_c: RenderComponent, pos_c: PositionComponent) {
-    texture_dest := rend_c.texture_dest
-    texture_dest.x = i32(pos_c.physics_position.x)
-    texture_dest.y = i32(pos_c.physics_position.y)
+    texture_dest := g4n.rect_add_vector(rend_c.texture_dest, pos_c.logic_position)
     if rend_c.in_camera {
         g4n.render_texture_via_camera(rend_c.camera^, renderer, rend_c.texture, nil, &texture_dest)
     }
