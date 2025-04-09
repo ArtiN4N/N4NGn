@@ -43,18 +43,29 @@ game_loop :: proc(game: ^Game) {
 
 game_update :: proc(game: ^Game) {
 	// player update
-	if .Position_CE in game.ecs_state.entity_bitsets[game.player] {
+	
+	if ecs.check_entity_has_component(&game.ecs_state, .Position_CE, game.player) {
 		ecs.update_logical_position_from_component(
-			&game.ecs_state.position_cc.components[game.ecs_state.position_cc.sparse_set[game.player]]
+			ecs.get_entities_component(&game.ecs_state.position_cc, game.player)
 		)
 	}
+	
 
-	if .Physics_CE in game.ecs_state.entity_bitsets[game.player] && .Position_CE in game.ecs_state.entity_bitsets[game.player] {
-		ecs.update_physics_component(
-			&game.ecs_state.physics_cc.components[game.ecs_state.physics_cc.sparse_set[game.player]],
-			&game.ecs_state.position_cc.components[game.ecs_state.position_cc.sparse_set[game.player]],
-			game.timing.dt
-		)
+	if ecs.check_entity_has_component(&game.ecs_state, .Physics_CE, game.player) {
+		if ecs.check_entity_has_component(&game.ecs_state, .HumanoidMovement_CE, game.player) {
+			ecs.humanoid_move_component_on_physics(
+				ecs.get_entities_component(&game.ecs_state.humanoid_movement_cc, game.player),
+				ecs.get_entities_component(&game.ecs_state.physics_cc, game.player),
+			)
+		}
+
+		if ecs.check_entity_has_component(&game.ecs_state, .Position_CE, game.player) {
+			ecs.update_physics_component(
+				ecs.get_entities_component(&game.ecs_state.physics_cc, game.player),
+				ecs.get_entities_component(&game.ecs_state.position_cc, game.player),
+				game.timing.dt
+			)
+		}
 	}
 }
 
@@ -65,8 +76,10 @@ game_render :: proc(game: ^Game) {
 	sdl.SetRenderDrawColor(game.sdl_intrinsics.renderer, 255, 255, 255, 255)
 	background : ^^sdl.Texture = &game.texture_sets["debug"].textures["map/img/car.bmp"]
 
-	dest := g4n.to_sdl_frect(g4n.meta_as_window_rect(game.sdl_intrinsics.meta_data))
+	dest := g4n.to_sdl_frect(g4n.meta_as_window_sdlrect(game.sdl_intrinsics.meta_data))
 	sdl.RenderTexture(game.sdl_intrinsics.renderer, background^, nil, &dest)
+
+	g4n.draw_tilemap(game.tile_map, game.tile_info, game.view_camera, game.sdl_intrinsics.renderer)
 
 	if .Render_CE in game.ecs_state.entity_bitsets[game.player] && .Position_CE in game.ecs_state.entity_bitsets[game.player] {
 		ecs.render_render_component(
@@ -76,8 +89,12 @@ game_render :: proc(game: ^Game) {
 		)
 	}
 
+	sdl.SetRenderDrawColor(game.sdl_intrinsics.renderer, 0, 255, 0, 255)
+	sdl.RenderLine(game.sdl_intrinsics.renderer, f32(game.sdl_intrinsics.meta_data.window_width / 2), 0, f32(game.sdl_intrinsics.meta_data.window_width / 2), f32(game.sdl_intrinsics.meta_data.window_height))
+	sdl.RenderLine(game.sdl_intrinsics.renderer, 0, f32(game.sdl_intrinsics.meta_data.window_height / 2), f32(game.sdl_intrinsics.meta_data.window_width), f32(game.sdl_intrinsics.meta_data.window_height / 2))
+
 	//start_camera_render(&game.view_camera)
-	//draw_tilemap(game.tile_map, game.tile_info, game.view_camera, game.sdl_intrinsics.renderer)
+	
 	//draw_player_entity(game.player, game.view_camera, game.sdl_intrinsics.renderer)
 
 	//end_camera_render(&game.view_camera)

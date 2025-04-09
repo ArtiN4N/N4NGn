@@ -7,6 +7,7 @@ import "core:slice"
 import "core:math"
 import sdl "vendor:sdl3"
 import img "vendor:sdl3/image"
+import ecs "../ecs"
 
 /*init_player_entity :: proc(player: ^Entity, texture: ^^sdl.Texture) {
     player.texture = texture
@@ -52,50 +53,55 @@ import img "vendor:sdl3/image"
     player.grabbing_target_tile = TilePoint{0, 0}
 }*/
 
-/*handle_player_input_keydown :: proc(player: ^Entity, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
-    #partial switch scan_code {
-        case .W:
-            player.grabbing = false
-            //player.move_velocity.y -= 1
-        case .S:
-            player.grabbing = false
-            //player.move_velocity.y += 1
-        case .A:
-            player.move_velocity.x -= 1
-            player.grabbing = false
-        case .D:
-            player.move_velocity.x += 1
-            player.grabbing = false
-        case .SPACE:
-            if !player.grounded && player.grounded_timer >= 0.1 && !player.grabbing { break }
-            player.global_velocity.y = player.jump_vel
-            player.grounded_timer = 1.0
-            player.grabbing = false
+handle_player_input_keydown :: proc(ecs_state: ^ecs.ECSState, player: ecs.EntityID, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
+    if .HumanoidMovement_CE in ecs_state.entity_bitsets[player] {
+        #partial switch scan_code {
+            case .A:
+                fmt.printfln("pressing A")
+                ecs.set_humanoid_move_component_xdir(
+                    &ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]],
+                    ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]].x_move_direction - 1
+                )
+                fmt.printfln("%v",ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]].x_move_direction )
+            case .D:
+                ecs.set_humanoid_move_component_xdir(
+                    &ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]],
+                    ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]].x_move_direction + 1
+                )
+        }
+    
+        switch key_code {
+            case sdl.K_LSHIFT:
+                ecs.set_humanoid_move_component_running(
+                    &ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]],
+                    !ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]].running
+                )
+        }
     }
+}
 
-    switch key_code {
-        case sdl.K_LSHIFT:
-            player.is_walking = true
-    }
-}*/
+handle_player_input_keyup :: proc(ecs_state: ^ecs.ECSState, player: ecs.EntityID, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
+    if .HumanoidMovement_CE in ecs_state.entity_bitsets[player] {
+        #partial switch scan_code {
+            case .A:
+                ecs.set_humanoid_move_component_xdir(
+                    &ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]],
+                    ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]].x_move_direction + 1
+                )
+            case .D:
+                ecs.set_humanoid_move_component_xdir(
+                    &ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]],
+                    ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]].x_move_direction - 1
+                )
+                
+        }
 
-/*handle_player_input_keyup :: proc(player: ^Entity, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
-    #partial switch scan_code {
-        //case .W:
-            //player.move_velocity.y += 1
-        //case .S:
-            //player.move_velocity.y -= 1
-        case .A:
-            player.move_velocity.x += 1
-        case .D:
-            player.move_velocity.x -= 1
+        switch key_code {
+            case sdl.K_LSHIFT:
+                
+        }
     }
-
-    switch key_code {
-        case sdl.K_LSHIFT:
-            player.is_walking = false
-    }
-}*/
+}
 
 /*update_player_entity :: proc(player: ^Entity, global_entity_acceleration: sdl.FPoint, tmap: TileMap, tinfo: TileInfo, dt: f32) {
     player.grounded_timer += dt
