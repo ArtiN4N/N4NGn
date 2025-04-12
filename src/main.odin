@@ -4,20 +4,43 @@ import g4n "../g4n"
 import ecs "../ecs"
 import "core:fmt"
 import "core:mem"
+import olog "core:log"
+import "core:os"
 
 main :: proc() {
 	tracking_allocator := g4n.create_tracking_allocator()
 	context.allocator = mem.tracking_allocator(&tracking_allocator)
 	defer g4n.destroy_tracking_allocator(&tracking_allocator)
 
+	log_handle, err := os.open("log/log.txt", os.O_WRONLY | os.O_APPEND | os.O_CREATE | os.O_TRUNC, 0o644)
+	if err != os.ERROR_NONE {
+		fmt.printfln("oh no!, %v", os.error_string(err))
+		panic("panicking!")
+	}
+	defer os.close(log_handle)
+	file_logger := olog.create_file_logger(log_handle)
+	context.logger = file_logger
+	defer olog.destroy_file_logger(file_logger)
+
+	olog.logf(.Debug, "hello world %v", 7)
+
+	fmt.printfln("made it past t alloc")
+
 	g4n.init_logs("", "ecs_")
     g4n.log("Hello World!")
 
+	fmt.printfln("made it past log")
+
 	game: Game = {}
 	s_intrinsics := g4n.pre_sdl_init()
+	fmt.printfln("made it pre init")
 	g4n.init_sdl(&s_intrinsics)
+	fmt.printfln("made it sdl init")
 	init_game(&game, s_intrinsics)
+	fmt.printfln("made it init")
 	init_load_game(&game)
+
+	fmt.printfln("made it load")
 
 	defer g4n.end_sdl(&game.sdl_intrinsics)
 	defer cleanup_game(&game)

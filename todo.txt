@@ -1,4 +1,8 @@
 # TODO
+- imminent major refactor:
+    - remove old log code and use odins builtin log
+    - add error handling
+    - use inedx+generation handles instead of pointers
 -- comments
     - basically everything in g4n
     - basically everything in ecs
