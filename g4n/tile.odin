@@ -20,7 +20,7 @@ TileInfo :: struct {
 }
 
 create_tile_info :: proc(texture_sets: ^map[string]TextureSet = nil) -> (info: TileInfo) {
-    path := "assets/tile/dat/properties.txt"
+    path := "data/tile_properties.txt"
 
     data, ok := os.read_entire_file_from_filename(path)
     if !ok {
