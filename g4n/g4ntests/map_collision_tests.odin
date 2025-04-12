@@ -1,6 +1,7 @@
 package g4ntests
 import sdl "vendor:sdl3"
 import g4n "../../g4n"
+import olog "core:log"
 import "core:testing"
 
 @(test)

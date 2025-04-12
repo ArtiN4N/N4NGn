@@ -13,9 +13,11 @@ test_load_map_from_file :: proc(t: ^testing.T) {
     testing.expect_value(t, tmap.tile_size, 50)
 
     y_1_set : []g4n.Tile = {.WALL, .BLANK, .BLANK, .BLANK, .BLANK, .WALL, .BLANK, .WALL}
+    y_4_set : []g4n.Tile = {.WALL, .BLANK, .BLANK, .BLANK, .BLANK, .WALL, .BLANK, .WALL}
     y_7_set : []g4n.Tile = {.WALL, .WALL, .WALL, .WALL, .WALL, .WALL, .WALL, .WALL}
     for i in 0..<tmap.width_tiles {
         testing.expect_value(t, tmap.set[i][1], y_1_set[i])
+        testing.expect_value(t, tmap.set[i][4], y_4_set[i])
         testing.expect_value(t, tmap.set[i][7], y_7_set[i])
     }
 }
