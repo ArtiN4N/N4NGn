@@ -27,8 +27,11 @@ log :: proc(data: string, args: ..any, file_prefix : string = "", location := #c
 	fileName := strings.concatenate(slice[:])
 
 	logFileDescript, openErr := os.open(fileName, os.O_APPEND)
+
 	for openErr != os.ERROR_NONE {
-		fmt.eprintfln("Well this is awkward... opening log file %s failed. OS Error: %v", fileName, os.error_string(openErr))
+		delete(fileName)
+
+		//fmt.eprintfln("Well this is awkward... opening log file %v failed. OS Error: %v", fileName, os.error_string(openErr))
 		return
 	}
 
@@ -39,15 +42,16 @@ log :: proc(data: string, args: ..any, file_prefix : string = "", location := #c
 	fmt.sbprintf(&logBuilder, data, ..args)
 	strings.write_byte(&logBuilder, '\n')
 	
-	// no i really dont know what the int does. it doesnt even have a variable name in the docs. its just: Int
-	idk_what_this_int_does, writeErr := os.write_string(logFileDescript, strings.to_string(logBuilder))
+
+	writeString := strings.to_string(logBuilder)
+	write_size, writeErr := os.write_string(logFileDescript, writeString)
 
 	os.close(logFileDescript)
-
 	strings.builder_destroy(&logBuilder)
 
 	if writeErr != os.ERROR_NONE {
-        fmt.eprintfln("Well this is awkward... writing to log file %s failed. OS Error: ", fileName, os.error_string(writeErr))
+		errString := os.error_string(openErr)
+		fmt.eprintfln("Well this is awkward... writing log file %v failed. OS Error: %v", fileName, errString)
     }
 
 	delete(fileName)
