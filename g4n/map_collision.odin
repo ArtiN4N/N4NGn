@@ -1,10 +1,12 @@
 package g4n
 import olog "core:log"
+import "core:fmt"
 
 line_collides_map :: proc(line: TLine, tmap: TileMap, tinfo: TileInfo, c_tier: u8) -> bool {
     min_bound, max_bound := get_map_indecies_bound_by_positions(line.a, line.b, tmap.tile_size)
+
     for x := min_bound.x; x <= max_bound.x; x += 1 {
-        for y := min_bound.y; y <= max_bound.x; y += 1 {
+        for y := min_bound.y; y <= max_bound.y; y += 1 {
             tile_rect := get_map_index_rect(x, y, tmap.tile_size)
 
             if line_intersects_rect(line, tile_rect) && c_tier < tinfo.collision_tier[tmap.set[x][y]] {
