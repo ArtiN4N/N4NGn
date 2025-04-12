@@ -1,6 +1,8 @@
 package g4n
 
+import olog "core:log"
 import "core:os"
+import "core:fmt"
 import "core:strings"
 import "core:strconv"
 import "core:unicode/utf8"
@@ -20,14 +22,13 @@ init_map_set :: proc(tmap: ^TileMap) {
 load_map_from_file :: proc(fname: string, tile_size: u32) -> (loaded: TileMap) {
     loaded.tile_size = tile_size
 
-    slice := [?]string { "assets/map/dat/", fname }
+    slice := [?]string { "data/map/", fname }
     file_path := strings.concatenate(slice[:])
-    defer delete(file_path)
 
     data, ok := os.read_entire_file_from_filename(file_path)
+    delete(file_path)
     if !ok {
-		log("Error! Could not load map from file")
-        return
+		panic("Failure in loading map from file")
 	}
     defer delete(data)
 
@@ -52,6 +53,8 @@ load_map_from_file :: proc(fname: string, tile_size: u32) -> (loaded: TileMap) {
             str := utf8.runes_to_string(tile_runes[:])
             defer delete(str)
             tile := cast(Tile) strconv.atoi(str)
+
+            
             loaded.set[col][row] = tile
         }
 
@@ -66,9 +69,9 @@ load_map_patterns :: proc(name: string) -> [2][16][16]Tile {
 
     slice := [?]string { "assets/map/dat/", name }
     file_path := strings.concatenate(slice[:])
-    defer delete(file_path)
 
     data, ok := os.read_entire_file_from_filename(file_path)
+    delete(file_path)
     if !ok {
 		log("Error! Could not read random map patterns file")
         return ret
