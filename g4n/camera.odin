@@ -28,21 +28,21 @@ get_camera_shift_position :: proc(cam: Camera) -> IVector {
     return vector_add(size_offset, -cam.anchor^)
 }
 
-get_camera_real_position :: proc(cam: Camera) -> IVector {
+get_camera_anchored_position :: proc(cam: Camera) -> IVector {
     return vector_add(get_rect_position(cam.box), cam.anchor^)
 }
 
-get_camera_real_rectangle :: proc(cam: Camera) -> IRect {
-    pos := get_camera_real_position(cam)
+get_camera_anchored_rectangle :: proc(cam: Camera) -> IRect {
+    pos := get_camera_anchored_position(cam)
     return IRect{ pos.x, pos.y, cam.box.w, cam.box.h}
 }
 
 is_point_in_camera :: proc(cam: Camera, pos: IVector) -> bool {
-    return rect_contains_vector(get_camera_real_rectangle(cam), pos)
+    return rect_contains_vector(get_camera_anchored_rectangle(cam), pos)
 }
-import "core:fmt"
+
 is_rectangle_in_camera :: proc(cam: Camera, rect: IRect) -> bool {
-    return rects_collide(get_camera_real_rectangle(cam), rect)
+    return rects_collide(get_camera_anchored_rectangle(cam), rect)
 }
 
 // Does an offset to the texture to be drawn before rendering, translating it into the screen.
@@ -78,7 +78,7 @@ render_rect_via_camera :: proc(cam: Camera, renderer: ^sdl.Renderer, rect: sdl.R
 
     rect := rect
 
-    real_pos := get_camera_real_position(cam)
+    real_pos := get_camera_anchored_position(cam)
     rect_add_vector(rect, -real_pos)
 
     frect := to_frect(rect)
