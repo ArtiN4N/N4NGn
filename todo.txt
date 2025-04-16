@@ -1,14 +1,15 @@
 # TODO
-- imminent major refactor:
-    - remove old log code and use odins builtin log
-    - add error handling
+- keep a look out for innapropriate error handling
+- refactor:
     - use inedx+generation handles instead of pointers
--- comments
+- write mds
+    - tile_info_parse.md
+    - texture_set_parse.md
+    - map_data_parse.md
+    - map_patterns_parse.md
+- comments
     - basically everything in g4n
     - basically everything in ecs
-- error handling
-    - negative values when dealing with maps (physics done in floats)
-    - nil values for pointers
 - tests
     - cap_negative_line_coords
     
@@ -17,12 +18,12 @@
     - texture set loading
     - tile loading
 - texture retrevial from texture set
-    - isolate it to a procedure
-    - handle errors on set doesnt exist / file doesnt exist / file isnt loaded
+    - handle errors on file isnt loaded
 - texture set loading
     - rewrite large portion, perhaps even foundation
     - get an accurate proc to read wether a texture handle is currently loaded
 - Design an efficient asset loading/unloading structure
+    - maybe done?
 - Procedural animation  
 - Efficient Background drawing
     - for example, if using a tile map, and there are 1000 tiles for the current loaded area, instead of drawing all 1000 tiles (or what can fit in the screen) every frame,
