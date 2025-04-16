@@ -17,6 +17,11 @@
     - all valid ecs
     - texture set loading
     - tile loading
+- create toolings:
+    - app to build texture sets, highlight textures not used
+    - app to build maps, mpa files written in binary
+    - app to build tiles, set textures, link to sets, give properties
+    - app to manage entities, give names and link components
 - texture retrevial from texture set
     - handle errors on file isnt loaded
 - texture set loading
