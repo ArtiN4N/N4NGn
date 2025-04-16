@@ -3,7 +3,7 @@ import sdl "vendor:sdl3"
 import g4n "../g4n"
 
 // Entities - Components - Systems
-ECSState :: struct {
+ECS_State :: struct {
     active_entities: EntityID,
 
     physics_cc: ComponentCollection(PhysicsComponent),
@@ -49,7 +49,7 @@ destroy_ecs_component_data :: proc{
 	destroy_render_physics_component_data,
 }
 
-destroy_ecs_component_collections :: proc(ecs_state: ^ECSState) {
+destroy_ecs_component_collections :: proc(ecs_state: ^ECS_State) {
     destroy_component_collection(ecs_state^, &ecs_state.physics_cc)
 	destroy_component_collection(ecs_state^, &ecs_state.edge_grab_cc)
 	destroy_component_collection(ecs_state^, &ecs_state.gravity_cc)
@@ -63,7 +63,7 @@ destroy_ecs_component_collections :: proc(ecs_state: ^ECSState) {
 	destroy_component_collection(ecs_state^, &ecs_state.render_physics_cc)
 }
 
-stock_ecs_state_component_collections :: proc(state: ^ECSState) {
+stock_ecs_state_component_collections :: proc(state: ^ECS_State) {
     state.physics_cc = create_component_collection(PhysicsComponent)
 	state.edge_grab_cc = create_component_collection(EdgeGrabComponent)
 	state.gravity_cc = create_component_collection(GravityComponent)
@@ -107,7 +107,7 @@ get_component_id :: proc(T: typeid) -> ComponentID {
 	return .Position_CE
 }
 
-destroy_entity :: proc(ecs_state: ^ECSState, entity: EntityID) {
+destroy_entity :: proc(ecs_state: ^ECS_State, entity: EntityID) {
     for e in ComponentID {
         if e in ecs_state.entity_bitsets[entity] {
             switch e {

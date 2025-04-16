@@ -2,12 +2,14 @@ package ecs
 import sdl "vendor:sdl3"
 import g4n "../g4n"
 
+MAX_FORCES :: 16
+
 PhysicsComponent :: struct {
-    body: g4n.PhysicsBody,
+    body: g4n.Physics_Body,
     //velocity: g4n.FVector,
     //acceleration: g4n.FVector,
     velo_forces: [dynamic]g4n.Force,
-    accel_forces: [dynamic]g4n.CompoundForce,
+    accel_forces: [dynamic]g4n.Compound_Force,
 
     suspended: bool,
     mass: f32,
@@ -25,7 +27,7 @@ create_physics_component_data :: proc(
     //component.acceleration = g4n.FVECTOR_ZERO
 
     component.velo_forces = make([dynamic]g4n.Force)
-    component.accel_forces = make([dynamic]g4n.CompoundForce)
+    component.accel_forces = make([dynamic]g4n.Compound_Force)
 
     component.suspended = false
     component.mass = mass
@@ -42,7 +44,7 @@ add_physics_component_vel_force :: proc(phys_c: ^PhysicsComponent, f: g4n.Force)
     return &phys_c.velo_forces[len(phys_c.velo_forces) - 1]
 }
 
-add_physics_component_accel_force :: proc(phys_c: ^PhysicsComponent, f: g4n.CompoundForce) -> ^g4n.CompoundForce {
+add_physics_component_accel_force :: proc(phys_c: ^PhysicsComponent, f: g4n.Compound_Force) -> ^g4n.Compound_Force {
     i := append(&phys_c.accel_forces, f)
     return &phys_c.accel_forces[len(phys_c.accel_forces) - 1]
 }
@@ -158,7 +160,7 @@ humanoid_move_component_on_physics :: proc(move_c: ^HumanoidMovementComponent, p
     if move_c.last_moved_right && force_dir.x < 0 { move_c.last_moved_right = false }
     else if !move_c.last_moved_right && force_dir.x > 0 { move_c.last_moved_right = true }
 
-    vel_force := g4n.Force{force_dir, -1}
+    vel_force := g4n.Force{force_dir, g4n.Force_Decay{100, false}}
     add_physics_component_vel_force(phys_c, vel_force)
 }
 

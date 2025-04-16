@@ -26,7 +26,7 @@ create_component_collection :: proc($T: typeid) -> (collection: ComponentCollect
     return
 }
 
-destroy_component_collection :: proc(ecs_state: ECSState, collection: ^ComponentCollection($T)) {
+destroy_component_collection :: proc(ecs_state: ECS_State, collection: ^ComponentCollection($T)) {
     l := queue.len(collection.free_components)
     skip_eles : [MAX_ENTITIES]bool
     for i in 0..<l {
@@ -51,7 +51,7 @@ new_ecs_component_index :: proc(cc: ^ComponentCollection($T)) -> u32 {
 }
 
 attach_ecs_component :: proc(
-    ecs_state: ^ECSState, entity: EntityID,
+    ecs_state: ^ECS_State, entity: EntityID,
     $T: typeid, cc: ^ComponentCollection(T), component: T = {}
 ) {
     idx := new_ecs_component_index(cc)
@@ -61,7 +61,7 @@ attach_ecs_component :: proc(
 }
 
 destroy_ecs_component :: proc(
-    ecs_state: ^ECSState, entity: EntityID,
+    ecs_state: ^ECS_State, entity: EntityID,
     cc: ^ComponentCollection($T)
 ) {
     idx := cc.sparse_set[entity]

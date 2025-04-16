@@ -5,7 +5,7 @@ import g4n "../g4n"
 RenderComponent :: struct {
     in_camera: bool,
     camera: ^g4n.Camera,
-    texture: ^sdl.Texture,
+    texture_key: g4n.Texture_Key,
     texture_dest: g4n.IRect
 }
 
@@ -15,20 +15,21 @@ set_render_component_camera :: proc(component: ^RenderComponent, camera: ^g4n.Ca
 }
 
 create_render_component_data :: proc(
-    width, height: i32, texture: ^sdl.Texture = nil, in_camera: bool = false, camera: ^g4n.Camera = nil
+    width, height: i32, tkey: g4n.Texture_Key, in_camera: bool = false, camera: ^g4n.Camera = nil
 ) -> (component: RenderComponent) {
     component.in_camera = in_camera
     component.camera = camera
-    component.texture = texture
+    component.texture_key = tkey
     component.texture_dest = g4n.IRect{0, 0, width, height}
     return
 }
 destroy_render_component_data :: proc(component: ^RenderComponent) {}
 
-render_render_component :: proc(renderer: ^sdl.Renderer, rend_c: RenderComponent, pos_c: PositionComponent) {
+render_render_component :: proc(renderer: ^sdl.Renderer, tsets: g4n.Texture_Set_Map, rend_c: RenderComponent, pos_c: PositionComponent) {
+    texture := g4n.get_tile_texture_with_key(tsets, rend_c.texture_key)
     texture_dest := g4n.rect_add_vector(rend_c.texture_dest, pos_c.logic_position)
     if rend_c.in_camera {
-        g4n.render_texture_via_camera(rend_c.camera^, renderer, rend_c.texture, nil, &texture_dest)
+        g4n.render_texture_via_camera(rend_c.camera^, renderer, texture, nil, &texture_dest)
     }
 }
 
