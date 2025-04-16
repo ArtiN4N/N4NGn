@@ -57,6 +57,17 @@ floor_fvector_test :: proc(t: ^testing.T) {
 }
 
 @(test)
+ceil_fvector_test :: proc(t: ^testing.T) {
+    a := g4n.FVector{5,5.21}
+    b := g4n.FVector{-2.999,3}
+    c := g4n.FVector{-4.0, -5.5}
+
+    testing.expect_value(t, g4n.ceil_fvector(a), g4n.FVector{5,6})
+    testing.expect_value(t, g4n.ceil_fvector(b), g4n.FVector{-2, 3})
+    testing.expect_value(t, g4n.ceil_fvector(c), g4n.FVector{-4, -5})
+}
+
+@(test)
 vector_mult_test :: proc(t: ^testing.T) {
     a := g4n.IVector{5,5}
     b := g4n.IVECTOR_ZERO
@@ -118,6 +129,21 @@ vector_dist_test :: proc(t: ^testing.T) {
     testing.expect_value(t, g4n.vector_dist(c, g4n.to_fvector(a)), math.sqrt_f32(1.25))
     testing.expect_value(t, g4n.vector_dist(c, d), math.sqrt_f32(125))
     testing.expect_value(t, g4n.vector_dist(e, f), math.sqrt_f32(130))
+}
+
+@(test)
+vector_magnitude_test :: proc(t: ^testing.T) {
+    a := g4n.IVector{5,5}
+    b := g4n.FVector{-6, 10.5}
+    c := g4n.TVector{1, 17}
+
+    sqrtFfty := math.sqrt_f32(50)
+    sqrtOfs := math.sqrt_f32(146.25)
+    sqrtTnnty := math.sqrt_f32(290)
+
+    testing.expect_value(t, g4n.vector_magnitude(a), sqrtFfty)
+    testing.expect_value(t, g4n.vector_magnitude(b), sqrtOfs)
+    testing.expect_value(t, g4n.vector_magnitude(c), sqrtTnnty)
 }
 
 @(test)

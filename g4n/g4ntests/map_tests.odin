@@ -47,7 +47,7 @@ test_get_map_index_rect :: proc(t: ^testing.T) {
 @(test)
 test_tile_out_of_bounds :: proc(t: ^testing.T) {
     tmap := g4n.load_map_from_file("tests/01.txt", 50)
-    defer g4n.destroy_tilemap(&tmap)
+    defer g4n.destroy_tile_map(&tmap)
 
     testing.expect_value(t, tmap.width_tiles, 8)
     testing.expect_value(t, tmap.height_tiles, 9)

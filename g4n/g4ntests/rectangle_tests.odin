@@ -47,11 +47,11 @@ rect_with_pos_test :: proc(t: ^testing.T) {
 rect_size_test :: proc(t: ^testing.T) {
     a := g4n.IRect{0, 0, 1, 1}
     b := g4n.FRect{-2.5, 8.88, 4.4, 2}
-    c := g4n.TRect{11, 5, 1, 99}
+    c := g4n.TRect{11, 5, 1, 5}
 
     testing.expect_value(t, g4n.get_rect_size(a), g4n.IVector{1,1})
     testing.expect_value(t, g4n.get_rect_size(b), g4n.FVector{4.4, 2})
-    testing.expect_value(t, g4n.get_rect_size(c), g4n.TVector{1, 99})
+    testing.expect_value(t, g4n.get_rect_size(c), g4n.TVector{1, 5})
 }
 
 @(test)
@@ -172,7 +172,7 @@ rect_collides_test :: proc(t: ^testing.T) {
 
     h := g4n.TRect{16, 4, 1, 3}
     i := g4n.TRect{11, 3, 10, 3}
-    j := g4n.TRect{11, 0, 1, 3}
+    j := g4n.TRect{11, 0, 1, 1}
 
     testing.expect(t, g4n.rects_collide(a,b))
     testing.expect(t, g4n.rects_collide(b,c))

@@ -1,68 +1,23 @@
 package main
 
+import sdl "vendor:sdl3"
+import img "vendor:sdl3/image"
+import ecs "../ecs"
+
 import "core:fmt"
 import "core:os"
 import "core:strings"
 import "core:slice"
 import "core:math"
-import sdl "vendor:sdl3"
-import img "vendor:sdl3/image"
-import ecs "../ecs"
 
-/*init_player_entity :: proc(player: ^Entity, texture: ^^sdl.Texture) {
-    player.texture = texture
-    //sdl.SetTextureScaleMode(player.texture^, sdl.ScaleMode.NEAREST)
-
-    // This is particular to the loaded image for the player. Must be changed manually
-    player.texture_src_position = { 0, 0 }
-    player.texture_src_size = { 219, 330 }
-
-    // This is also particular. Should generally keep aspect ratio same as the actual texture src
-    // Doesn't have to be exact. In fact, a sprite that is bigger than its hitbox is ideal
-    player.texture_dest_size = { 40, 60 }
-    // Setting this to the negative of half the dest texture size makes it so that the texture is drawn with the players real position in the center
-    player.texture_dest_offset = { -20, -40 }
-
-    // Starting position. Should be manually overwritten by level manager
-    player.position = { 100, 300 }
-    player.velocity = { 0, 0 }
-    player.acceleration = { 0, 0 }
-
-    player.move_velocity = { 0, 0 }
-    player.move_acceleration = { 0, 0 }
-
-    player.is_walking = false
-
-    player.walk_speed = 200
-    player.run_speed = 400
-
-    player.jump_vel = -500
-
-    // Again, should be manually finetuned
-    player.combat_hitbox = create_hitbox(-12, -12, 25, 25, &player.discrete_position, .COMBAT)
-    player.collision_hitbox = create_hitbox(-15, -15, 30, 30, &player.discrete_position, .COLLISION)
-    player.grab_hitbox = create_hitbox(-45, -25, 90, 4, &player.discrete_position, .GRAB)
-
-    player.collision_tier = 0
-
-    player.grounded_timer = 1.0
-
-    player.grounded = false
-
-    player.grabbing = false
-    player.grabbing_target_tile = TilePoint{0, 0}
-}*/
-
-handle_player_input_keydown :: proc(ecs_state: ^ecs.ECSState, player: ecs.EntityID, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
+handle_player_input_keydown :: proc(ecs_state: ^ecs.ECS_State, player: ecs.EntityID, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
     if .HumanoidMovement_CE in ecs_state.entity_bitsets[player] {
         #partial switch scan_code {
             case .A:
-                fmt.printfln("pressing A")
                 ecs.set_humanoid_move_component_xdir(
                     &ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]],
                     ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]].x_move_direction - 1
                 )
-                fmt.printfln("%v",ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]].x_move_direction )
             case .D:
                 ecs.set_humanoid_move_component_xdir(
                     &ecs_state.humanoid_movement_cc.components[ecs_state.humanoid_movement_cc.sparse_set[player]],
@@ -80,7 +35,7 @@ handle_player_input_keydown :: proc(ecs_state: ^ecs.ECSState, player: ecs.Entity
     }
 }
 
-handle_player_input_keyup :: proc(ecs_state: ^ecs.ECSState, player: ecs.EntityID, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
+handle_player_input_keyup :: proc(ecs_state: ^ecs.ECS_State, player: ecs.EntityID, scan_code: sdl.Scancode, key_code: sdl.Keycode) {
     if .HumanoidMovement_CE in ecs_state.entity_bitsets[player] {
         #partial switch scan_code {
             case .A:

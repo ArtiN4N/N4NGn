@@ -7,7 +7,7 @@ import "core:testing"
 @(test)
 test_line_collides_map :: proc(t: ^testing.T) {
     tmap := g4n.load_map_from_file("tests/01.txt", 50)
-    defer g4n.destroy_tilemap(&tmap)
+    defer g4n.destroy_tile_map(&tmap)
 
     tinfo := g4n.create_tile_info()
 
@@ -29,7 +29,7 @@ test_line_collides_map :: proc(t: ^testing.T) {
 @(test)
 test_rect_collides_map :: proc(t: ^testing.T) {
     tmap := g4n.load_map_from_file("tests/01.txt", 50)
-    defer g4n.destroy_tilemap(&tmap)
+    defer g4n.destroy_tile_map(&tmap)
 
     tinfo := g4n.create_tile_info()
 
@@ -50,7 +50,7 @@ test_rect_collides_map :: proc(t: ^testing.T) {
 @(test)
 test_rect_movement_collision_map :: proc(t: ^testing.T) {
     tmap := g4n.load_map_from_file("tests/01.txt", 1)
-    defer g4n.destroy_tilemap(&tmap)
+    defer g4n.destroy_tile_map(&tmap)
 
     tinfo := g4n.create_tile_info()
 

@@ -7,7 +7,7 @@ import olog "core:log"
 @(test)
 test_rect_movement_collision_correct_map :: proc(t: ^testing.T) {
     tmap := g4n.load_map_from_file("tests/01.txt", 1)
-    defer g4n.destroy_tilemap(&tmap)
+    defer g4n.destroy_tile_map(&tmap)
 
     tinfo := g4n.create_tile_info()
 
