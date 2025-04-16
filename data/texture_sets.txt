@@ -1,26 +1,26 @@
-$debug&6
+$init&6
 assets/
-entity/img/teto.png
-item/img/pick.png
-map/img/car.bmp
-tile/img/air.png
-tile/img/wall.png
-tile/img/exit.png
+entity/teto.png
+item/pick.png
+map/car.bmp
+tile/air.png
+tile/wall.png
+tile/exit.png
 
 $entity&1
 assets/
-entity/img/teto.png
+entity/teto.png
 
 $item&1
 assets/
-item/img/pick.png
+item/pick.png
 
 $map&1
 assets/
-map/img/car.bmp
+map/car.bmp
 
 $tile&3
 assets/
-tile/img/air.png
-tile/img/wall.png
-tile/img/exit.png
+tile/air.png
+tile/wall.png
+tile/exit.png

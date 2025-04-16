@@ -1,6 +1,6 @@
-$debug
-1,1,tile/img/wall.png
-0,0,tile/img/air.png
-0,0,tile/img/exit.png
+$init
+1,1,tile/wall.png
+0,0,tile/air.png
+0,0,tile/exit.png
 
 $tile2
