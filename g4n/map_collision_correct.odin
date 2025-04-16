@@ -3,7 +3,7 @@ import "core:math"
 
 MAX_RECT_DISTANCE_FOR_INCREMENT_CORRECTION :: DEFAULT_TILE_SIZE * 5
 
-tilemap_correct_rect_collision :: proc(rect: TRect, new_position: TVector, tmap: TileMap, tinfo: TileInfo, c_tier: u8) {
+tilemap_correct_rect_collision :: proc(rect: TRect, new_position: TVector, tmap: Tile_Map, tinfo: Tile_Info, c_tier: u8) {
     if (!tilemap_rect_movement_collision_occurs(rect, new_position, tmap, tinfo, c_tier)) { return }
 
     //movement_dist := vector_dist(get_rect_position(rect), new_position)
@@ -14,7 +14,7 @@ tilemap_correct_rect_collision :: proc(rect: TRect, new_position: TVector, tmap:
 }
 
 tilemap_increment_rect_collision_correction :: proc(
-    rect: TRect, prospect_pos: TVector, tmap: TileMap, tinfo: TileInfo, c_tier: u8
+    rect: TRect, prospect_pos: TVector, tmap: Tile_Map, tinfo: Tile_Info, c_tier: u8
 ) -> (correct_pos: TVector, collided_x, collided_y: bool) {
     orig_pos := get_rect_position(rect)
 

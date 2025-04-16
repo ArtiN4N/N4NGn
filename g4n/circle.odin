@@ -1,11 +1,13 @@
 package g4n
+
 import sdl "vendor:sdl3"
+
 import "core:math"
+import "core:log"
 
 ICircle :: struct { x, y, r: i32 }
 FCircle :: struct { x, y, r: f32 }
 TCircle :: struct { x, y, r: u32 }
-
 
 
 icircle_to_fcircle :: proc(a: ICircle) -> (c: FCircle) {
@@ -28,9 +30,9 @@ to_fcircle :: proc{icircle_to_fcircle, tcircle_to_fcircle}
 
 
 
-icircle_to_tcircle :: proc(a: ICircle) -> (c: TCircle) {
+icircle_to_tcircle :: proc(a: ICircle, loc := #caller_location) -> (c: TCircle) {
     if a.x < 0 || a.y < 0 || a.r < 0 {
-        log("Uh oh! Casting negative int to unsigned int!")
+        log.logf(.Warning, "Casting negative int to uint from %v.", loc)
     }
 
     c.x = u32(a.x)
@@ -39,9 +41,9 @@ icircle_to_tcircle :: proc(a: ICircle) -> (c: TCircle) {
 
     return
 }
-fcircle_to_tcircle :: proc(a: FCircle) -> (c: TCircle) {
+fcircle_to_tcircle :: proc(a: FCircle, loc := #caller_location) -> (c: TCircle) {
     if a.x < 0 || a.y < 0 || a.r < 0 {
-        log("Uh oh! Casting negative int to unsigned int!")
+        log.logf(.Warning, "Casting negative float to uint from %v.", loc)
     }
 
     c.x = u32(a.x)

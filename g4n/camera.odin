@@ -1,5 +1,8 @@
 package g4n
+
 import sdl "vendor:sdl3"
+
+import "core:log"
 
 // A camera has a view of the game's logic space.
 // It keeps a pointer to a vector as its anchor. This anchor is the center of the camera.
@@ -18,8 +21,7 @@ create_camera :: proc(width, height: i32, anchor: ^IVector, offset: IVector = IV
     camera.box = rect_add_vector(camera.box, offset)
     camera.anchor = anchor
 
-    log("Created camera.")
-
+    log.logf(.Info, "Created camera.")
     return
 }
 

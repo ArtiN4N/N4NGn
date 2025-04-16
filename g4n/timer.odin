@@ -1,5 +1,8 @@
 package g4n
+
 import sdl "vendor:sdl3"
+
+import "core:log"
 
 Timer :: struct {
     elapsed: f32,
@@ -9,10 +12,12 @@ Timer :: struct {
 create_timer :: proc() -> (timer: Timer) {
     timer.elapsed = 0
     timer.active = false
+
+    log.logf(.Debug, "Created timer.")
     return
 }
 
-update_timer :: proc(timer: ^Timer, game_clock: GameClock) {
+update_timer :: proc(timer: ^Timer, game_clock: Game_Clock) {
     if !timer.active { return }
     timer.elapsed += game_clock.dt
 }

@@ -2,9 +2,11 @@ package g4n
 
 import sdl "vendor:sdl3"
 import img "vendor:sdl3/image"
-import "core:math"
 
-TileMap :: struct {
+import "core:math"
+import "core:log"
+
+Tile_Map :: struct {
     width_tiles: u32,
     height_tiles: u32,
 
@@ -14,12 +16,13 @@ TileMap :: struct {
     set: [dynamic][dynamic]Tile,
 }
 
-init_tilemap :: proc(tmap: ^TileMap, info: TileInfo, map_file: string = "", size : u32 = DEFAULT_TILE_SIZE) {
+create_tile_map :: proc(
+    info: Tile_Info, map_file: string = "", size : u32 = DEFAULT_TILE_SIZE
+) -> (tmap: Tile_Map) {
     tmap.tile_size = size
 
     if len(map_file) == 0 {
-        generate_random_map(tmap, info)
-        return
+        generate_random_map(&tmap, info)
     }
 
     /* load map file
@@ -30,15 +33,18 @@ init_tilemap :: proc(tmap: ^TileMap, info: TileInfo, map_file: string = "", size
     }
 
     */
+    log.logf(.Info, "Tile Map has been created.")
+    return
+
 }
 
-destroy_tilemap :: proc(tmap: ^TileMap) {
+destroy_tile_map :: proc(tmap: ^Tile_Map) {
     for i in 0..<tmap.width_tiles {
         delete(tmap.set[i])
     }
     delete(tmap.set)
+    log.logf(.Info, "Tile Map has been destroyed.")
 }
-
 
 convert_position_to_map_index :: proc(vec: TVector, tile_size: u32) -> TVector {
     return vector_div_scalar(vec, tile_size)
@@ -60,12 +66,31 @@ get_map_index_rect :: proc(x, y: u32, tile_size: u32) -> TRect {
     return rect_from_nw_se(rect_nw, rect_se)
 }
 
-
-check_map_index_out_of_bounds :: proc(x, y: u32, tmap: TileMap) -> bool {
+check_map_index_out_of_bounds :: proc(x, y: u32, tmap: Tile_Map) -> bool {
     return x < 0 || y < 0 || x >= tmap.width_tiles || y >= tmap.height_tiles
 }
 
-/*tilemap_check_entity_grounded :: proc(hitbox: Hitbox, tmap: TileMap, tinfo: TileInfo, collision_tier: u8) -> bool {
+draw_tile_map :: proc(
+    renderer: ^sdl.Renderer, tmap: Tile_Map, info: Tile_Info,
+    t_sets: Texture_Set_Map, camera: Camera,
+) {
+    sdl.SetRenderDrawColor(renderer, 255, 255, 255, sdl.ALPHA_OPAQUE)
+
+    dest := sdl.Rect{ 0, 0, cast(i32) tmap.tile_size, cast(i32) tmap.tile_size }
+
+    for i in 0..<tmap.width_tiles {
+        for j in 0..<tmap.height_tiles {
+
+            dest.x = cast(i32) (i * tmap.tile_size)
+            dest.y = cast(i32) (j * tmap.tile_size)
+
+            text_key := info.texture_keys[tmap.set[i][j]]
+            render_texture_via_camera(camera, renderer, get_tile_texture_with_key(t_sets, text_key), nil, &dest)
+        }
+    }
+}
+
+/*Tile_Map_check_entity_grounded :: proc(hitbox: Hitbox, tmap: Tile_Map, tinfo: Tile_Info, collision_tier: u8) -> bool {
     checking_line := Line{hitbox.corners[.SE], hitbox.corners[.SW]}
 
     checking_line.p1.y += 1
@@ -74,7 +99,7 @@ check_map_index_out_of_bounds :: proc(x, y: u32, tmap: TileMap) -> bool {
     return line_collides_map(checking_line, tmap, tinfo, collision_tier)
 }*/
 
-/*tilemap_check_entity_grab :: proc(hitbox: Hitbox, tmap: TileMap, tinfo: TileInfo, collision_tier: u8, facing_right: bool) -> (should_grab: bool, tile: TilePoint) {
+/*Tile_Map_check_entity_grab :: proc(hitbox: Hitbox, tmap: Tile_Map, tinfo: Tile_Info, collision_tier: u8, facing_right: bool) -> (should_grab: bool, tile: TilePoint) {
     should_grab = false
     tile = TilePoint{0, 0}
 
@@ -106,19 +131,3 @@ check_map_index_out_of_bounds :: proc(x, y: u32, tmap: TileMap) -> bool {
 
     return
 }*/
-
-draw_tilemap :: proc(tmap: TileMap, info: TileInfo, camera: Camera, renderer: ^sdl.Renderer) {
-    sdl.SetRenderDrawColor(renderer, 255, 255, 255, sdl.ALPHA_OPAQUE)
-
-    dest := sdl.Rect{ 0, 0, cast(i32) tmap.tile_size, cast(i32) tmap.tile_size }
-
-    for i in 0..<tmap.width_tiles {
-        for j in 0..<tmap.height_tiles {
-
-            dest.x = cast(i32) (i * tmap.tile_size)
-            dest.y = cast(i32) (j * tmap.tile_size)
-            render_texture_via_camera(camera, renderer, info.textures[tmap.set[i][j]], nil, &dest)
-            //sdl.RenderTexture(renderer, info.textures[tmap.set[i][j]], nil, &dest)
-        }
-    }
-}

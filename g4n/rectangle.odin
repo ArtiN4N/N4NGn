@@ -1,8 +1,12 @@
 package g4n
+
 import sdl "vendor:sdl3"
 import "core:math"
+import "core:log"
 
 // Rectangle positions are in the center of the rectangle
+// SDL rect positions are in the top left
+// Rect corners are the positions of each of the four corners of the rectangle
 
 IRect :: sdl.Rect
 FRect :: sdl.FRect
@@ -25,6 +29,8 @@ TRectCorners :: [RectCornerNames]TVector
 TRectLines   :: [RectLineNames]TLine
 
 
+
+
 irect_to_frect :: proc(a: IRect) -> (r: FRect) {
     r.x = f32(a.x)
     r.y = f32(a.y)
@@ -41,15 +47,14 @@ trect_to_frect :: proc(a: TRect) -> (r: FRect) {
 
     return
 }
-
 to_frect :: proc{irect_to_frect, trect_to_frect}
 
 
 
 
-irect_to_trect :: proc(a: IRect) -> (r: TRect) {
+irect_to_trect :: proc(a: IRect, loc := #caller_location) -> (r: TRect) {
     if a.x < 0 || a.y < 0 || a.w < 0 || a.h < 0 {
-        log("Uh oh! Casting negative int to unsigned int!")
+        log.logf(.Warning, "Casting negative int to uint from %v.", loc)
     }
 
     r.x = u32(a.x)
@@ -59,9 +64,9 @@ irect_to_trect :: proc(a: IRect) -> (r: TRect) {
 
     return
 }
-frect_to_trect :: proc(a: FRect) -> (r: TRect) {
+frect_to_trect :: proc(a: FRect, loc := #caller_location) -> (r: TRect) {
     if a.x < 0 || a.y < 0 || a.w < 0 || a.h < 0 {
-        log("Uh oh! Casting negative int to unsigned int!")
+        log.logf(.Warning, "Casting negative float to uint from %v.", loc)
     }
 
     r.x = u32(a.x)
@@ -71,7 +76,6 @@ frect_to_trect :: proc(a: FRect) -> (r: TRect) {
 
     return
 }
-
 to_trect :: proc{irect_to_trect, frect_to_trect}
 
 
@@ -93,8 +97,9 @@ frect_to_irect :: proc(a: FRect) -> (r: IRect) {
 
     return
 }
-
 to_irect :: proc{trect_to_irect, frect_to_irect}
+
+
 
 
 toi_sdl_frect :: proc(r: IRect) -> sdl.FRect {
@@ -106,6 +111,8 @@ tof_sdl_frect :: proc(r: FRect) -> sdl.FRect {
     return sdl.FRect{c[.NW].x, c[.NW].y, r.w, r.h}
 }
 to_sdl_frect :: proc{toi_sdl_frect, tof_sdl_frect}
+
+
 
 
 irect_from_nw_se :: proc(nw, se: IVector) -> IRect {
@@ -148,7 +155,6 @@ frect_with_position :: proc(r: FRect, p: FVector) -> FRect {
 trect_with_position :: proc(r: TRect, p: TVector) -> TRect {
     return { p.x, p.y, r.w, r.h }
 }
-
 rect_with_position :: proc{irect_with_position, frect_with_position, trect_with_position}
 
 
@@ -157,15 +163,12 @@ rect_with_position :: proc{irect_with_position, frect_with_position, trect_with_
 get_irect_position :: proc(r: IRect) -> IVector {
     return { r.x, r.y }
 }
-
 get_frect_position :: proc(r: FRect) -> FVector {
     return { r.x, r.y }
 }
-
 get_trect_position :: proc(r: TRect) -> TVector {
     return { r.x, r.y }
 }
-
 get_rect_position :: proc{get_irect_position, get_frect_position, get_trect_position}
 
 
@@ -197,8 +200,6 @@ trect_add_vector :: proc(a: TRect, b: TVector) -> (r: TRect) {
     r = {a.x + b.x, a.y + b.y, a.w, a.h}
     return
 }
-
-// Rect type dominates
 rect_add_vector :: proc{irect_add_vector, frect_add_vector, trect_add_vector}
 
 
@@ -232,15 +233,16 @@ get_frect_corners :: proc(r: FRect) -> FRectCorners {
     }
 }
 
-get_trect_corners :: proc(r: TRect) -> TRectCorners {
+get_trect_corners :: proc(r: TRect, loc := #caller_location) -> TRectCorners {
     // width includes the first pixel, hence the - 1
     fl_half_width  := math.floor(f32(r.w - 1) / 2)
     ce_half_width  := math.ceil( f32(r.w - 1) / 2)
     fl_half_height := math.floor(f32(r.h - 1) / 2)
     ce_half_height := math.ceil( f32(r.h - 1) / 2)
 
+
     if r.w == 0 || r.h == 0 || u32(fl_half_width) > r.x || u32(fl_half_height) > r.y {
-        log("Uh oh! Casting negative int to unsigned int!")
+        log.logf(.Warning, "Integer overflow from %v.", loc)
     }
     return {
         .NW = { r.x - u32(fl_half_width), r.y - u32(fl_half_height) },
@@ -249,7 +251,6 @@ get_trect_corners :: proc(r: TRect) -> TRectCorners {
         .SW = { r.x - u32(fl_half_width), r.y + u32(ce_half_height) },
     }
 }
-
 get_rect_corners :: proc{get_irect_corners, get_frect_corners, get_trect_corners}
 
 
@@ -274,7 +275,6 @@ get_irect_lines :: proc(r: IRect) -> IRectLines {
         .WE = {p4, p1},
     }
 }
-
 get_frect_lines :: proc(r: FRect) -> FRectLines {
     // width includes the first pixel, hence the - 1
     fl_half_width  := (r.w - 1) / 2
@@ -295,7 +295,7 @@ get_frect_lines :: proc(r: FRect) -> FRectLines {
     }
 }
 
-get_trect_lines :: proc(r: TRect) -> TRectLines {
+get_trect_lines :: proc(r: TRect, loc := #caller_location) -> TRectLines {
     // width includes the first pixel, hence the - 1
     fl_half_width  := math.floor(f32(r.w - 1) / 2)
     ce_half_width  := math.ceil( f32(r.w - 1) / 2)
@@ -308,7 +308,7 @@ get_trect_lines :: proc(r: TRect) -> TRectLines {
     p4 := TVector{ r.x - u32(fl_half_width), r.y + u32(ce_half_height) }
 
     if r.w == 0 || r.h == 0 || u32(fl_half_width) > r.x || u32(fl_half_height) > r.y {
-        log("Uh oh! Casting negative int to unsigned int!")
+        log.logf(.Warning, "Integer overflow from %v.", loc)
     }
 
     return TRectLines{
@@ -318,7 +318,6 @@ get_trect_lines :: proc(r: TRect) -> TRectLines {
         .WE = {p4, p1},
     }
 }
-
 get_rect_lines :: proc{get_irect_lines, get_frect_lines, get_trect_lines}
 
 
@@ -336,7 +335,6 @@ trect_contains_vector :: proc(r: TRect, v: TVector) -> bool {
     rc := get_rect_corners(r)
     return v.x >= rc[.NW].x && v.x <= rc[.NE].x && v.y >= rc[.NE].y && v.y <= rc[.SE].y
 }
-
 rect_contains_vector :: proc{irect_contains_vector, frect_contains_vector, trect_contains_vector}
 
 
@@ -357,7 +355,6 @@ trects_collide :: proc(a, b: TRect) -> bool {
     bc := get_rect_corners(b)
     return ac[.NE].x >= bc[.NW].x && ac[.NW].x <= bc[.NE].x && ac[.SE].y >= bc[.NE].y && ac[.NE].y <= bc[.SE].y
 }
-
 rects_collide :: proc{irects_collide, frects_collide, trects_collide}
 
 
@@ -420,8 +417,9 @@ trects_distance :: proc(a, b: TRect) -> f32 {
     else if b_is_top    { return abs(f32(bc[.SE].y) - f32(ac[.NE].y)) }
     else { return 0 } // rects intersect
 }
-
 //https://stackoverflow.com/a/26178015
+// These procs get the closest distance between rectangle -- meaning, more detailed than just the difference in their positions
+// if the centres of rect a and rect b have a distance of 5, then the rects are closer if they are diagonal to one another
 rects_distance :: proc{irects_distance, frects_distance, trects_distance}
 
 
@@ -454,9 +452,16 @@ trect_vector_dist :: proc(a: TRect, b: TVector) -> f32 {
     }
     return vector_dist(axis_dist, FVECTOR_ZERO)
 }
-
+// Again, closest distance, so more than just the centre rect vector distance
 rect_vector_dist :: proc{irect_vector_dist, frect_vector_dist, trect_vector_dist}
 
+
+
+// Movement defining lines are the lines between thge corners of rect a, and the corners of modified rect a'
+// The problem is that there are only 3 relevant lines: the line that intersects the centre of the rect,
+// and the 2 lines on the edges of the rectangle.
+// Which 2 lines are the edges depends on the movement direction of the rect.
+// This procedure simply checks the direction of the rect's movement, and returns the correct movement defining lines.
 get_frect_movement_defining_lines :: proc(rect: FRect, p_pos: FVector) -> (edge_line_a, mid_line, edge_line_b: FLine) {
     p_rect := rect
     p_rect.x = p_pos.x

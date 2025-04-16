@@ -1,6 +1,9 @@
 package g4n
+
 import sdl "vendor:sdl3"
+
 import "core:math"
+import "core:log"
 
 IVector :: sdl.Point
 FVector :: sdl.FPoint
@@ -21,29 +24,28 @@ tvector_to_fvector :: proc(v: TVector) -> (r: FVector) {
     r.y = f32(v.y)
     return
 }
-
 to_fvector :: proc{ivector_to_fvector, tvector_to_fvector}
 
 
 
 
-ivector_to_tvector :: proc(v: IVector) -> (r: TVector) {
+ivector_to_tvector :: proc(v: IVector, loc := #caller_location) -> (r: TVector) {
     if v.x < 0 || v.y < 0 {
-        log("Uh oh! Casting negative int to unsigned int!")
+        log.logf(.Warning, "Casting negative int to uint from %v.", loc)
     }
-    r.x = u32(v.x)
-    r.y = u32(v.y)
-    return
-}
-fvector_to_tvector :: proc(v: FVector) -> (r: TVector) {
-    if v.x < 0 || v.y < 0 {
-        log("Uh oh! Casting negative float to unsigned int!")
-    }
-    r.x = u32(v.x)
-    r.y = u32(v.y)
-    return
-}
 
+    r.x = u32(v.x)
+    r.y = u32(v.y)
+    return
+}
+fvector_to_tvector :: proc(v: FVector, loc := #caller_location) -> (r: TVector) {
+    if v.x < 0 || v.y < 0 {
+        log.logf(.Warning, "Casting negative float to uint from %v.", loc)
+    }
+    r.x = u32(v.x)
+    r.y = u32(v.y)
+    return
+}
 to_tvector :: proc{ivector_to_tvector, fvector_to_tvector}
 
 
@@ -59,7 +61,6 @@ tvector_to_ivector :: proc(v: TVector) -> (r: IVector) {
     r.y = i32(v.y)
     return
 }
-
 to_ivector :: proc{fvector_to_ivector, tvector_to_ivector}
 
 
@@ -68,6 +69,12 @@ to_ivector :: proc{fvector_to_ivector, tvector_to_ivector}
 floor_fvector :: proc(i: FVector) -> (r: FVector){
     r.x = math.floor(i.x)
     r.y = math.floor(i.y)
+
+    return
+}
+ceil_fvector :: proc(i: FVector) -> (r: FVector){
+    r.x = math.ceil(i.x)
+    r.y = math.ceil(i.y)
 
     return
 }
@@ -87,7 +94,6 @@ tvector_add :: proc(a, b: TVector) -> (r: TVector)  {
     r = a + b
     return
 }
-
 vector_add :: proc{ivector_add, fvector_add, tvector_add}
 
 
@@ -105,7 +111,6 @@ tvector_sub :: proc(a, b: TVector) -> (r: TVector)  {
     r = a - b
     return
 }
-
 vector_sub :: proc{ivector_sub, fvector_sub, tvector_sub}
 
 
@@ -126,7 +131,6 @@ tvector_abs :: proc(a: TVector) -> (r: TVector)  {
     r.y = abs(a.y)
     return
 }
-
 vector_abs :: proc{ivector_abs, fvector_abs, tvector_abs}
 
 
@@ -144,36 +148,35 @@ tvector_mult_scalar :: proc(a: TVector, b: u32) -> (r: TVector) {
     r = a * b
     return
 }
-
-// Vector type dominates
 vector_mult_scalar :: proc{ivector_mult_scalar, fvector_mult_scalar, tvector_mult_scalar}
 
 
 
 
-ivector_div_scalar :: proc(a: IVector, b: i32) -> (r: IVector) {
+ivector_div_scalar :: proc(a: IVector, b: i32, loc := #caller_location) -> (r: IVector) {
     if b == 0 {
-        log("Division by 0!")
+        log.logf(.Fatal, "Undefined behaviour: Division by 0!")
+        panic("FATAL crash! See log file for info.")
     }
     r = a / b
     return
 }
-fvector_div_scalar :: proc(a: FVector, b: f32) -> (r: FVector) {
+fvector_div_scalar :: proc(a: FVector, b: f32, loc := #caller_location) -> (r: FVector) {
     if b == 0 {
-        log("Division by 0!")
+        log.logf(.Fatal, "Undefined behaviour from %v: Division by 0!", loc)
+        panic("FATAL crash! See log file for info.")
     }
     r = a / b
     return
 }
-tvector_div_scalar :: proc(a: TVector, b: u32) -> (r: TVector) {
+tvector_div_scalar :: proc(a: TVector, b: u32, loc := #caller_location) -> (r: TVector) {
     if b == 0 {
-        log("Division by 0!")
+        log.logf(.Fatal, "Undefined behaviour from %v: Division by 0!", loc)
+        panic("FATAL crash! See log file for info.")
     }
     r = a / b
     return
 }
-
-// Vector type dominates
 vector_div_scalar :: proc{ivector_div_scalar, fvector_div_scalar, tvector_div_scalar}
 
 
@@ -188,11 +191,9 @@ fvector_cross :: proc(a, b: FVector) -> (r: f32)  {
     return
 }
 tvector_cross :: proc(a, b: TVector) -> (r: i32)  {
-    r = i32(a.x*b.y) - i32(b.x*a.y)
+    r = ivector_cross(to_ivector(a), to_ivector(b))
     return
 }
-
-// First vector type dominates
 vector_cross :: proc{ivector_cross, fvector_cross, tvector_cross}
 
 
@@ -213,26 +214,40 @@ tvector_dist :: proc(a, b: TVector) -> (r: f32) {
     r = math.sqrt(math.pow(diff.x, 2) + math.pow(diff.y, 2))
     return
 }
-
-// First vector type dominates
 vector_dist :: proc{ivector_dist, fvector_dist, tvector_dist}
+
+
+
+
+ivector_magnitude :: proc(a: IVector) -> (r: f32) {
+    r = vector_dist(a, IVECTOR_ZERO)
+    return
+}
+fvector_magnitude :: proc(a: FVector) -> (r: f32) {
+    r = vector_dist(a, FVECTOR_ZERO)
+    return
+}
+tvector_magnitude :: proc(a: TVector) -> (r: f32) {
+    r = vector_dist(a, TVECTOR_ZERO)
+    return
+}
+vector_magnitude :: proc{ivector_magnitude, fvector_magnitude, tvector_magnitude}
 
 
 
 
 ivector_normalize :: proc(a: IVector) -> (r: FVector) {
     a := to_fvector(a)
-    r = vector_div_scalar(a, vector_dist(a, FVECTOR_ZERO))
+    r = vector_div_scalar(a, vector_magnitude(a))
     return
 }
 fvector_normalize :: proc(a: FVector) -> (r: FVector) {
-    r = vector_div_scalar(a, vector_dist(a, FVECTOR_ZERO))
+    r = vector_div_scalar(a, vector_magnitude(a))
     return
 }
 tvector_normalize :: proc(a: TVector) -> (r: FVector) {
     a := to_fvector(a)
-    r = vector_div_scalar(a, vector_dist(a, FVECTOR_ZERO))
+    r = vector_div_scalar(a, vector_magnitude(a))
     return
 }
-
 vector_normalize :: proc{ivector_normalize, fvector_normalize, tvector_normalize}

@@ -2,7 +2,7 @@ package g4n
 import olog "core:log"
 import "core:fmt"
 
-line_collides_map :: proc(line: TLine, tmap: TileMap, tinfo: TileInfo, c_tier: u8) -> bool {
+line_collides_map :: proc(line: TLine, tmap: Tile_Map, tinfo: Tile_Info, c_tier: u8) -> bool {
     min_bound, max_bound := get_map_indecies_bound_by_positions(line.a, line.b, tmap.tile_size)
 
     for x := min_bound.x; x <= max_bound.x; x += 1 {
@@ -17,7 +17,7 @@ line_collides_map :: proc(line: TLine, tmap: TileMap, tinfo: TileInfo, c_tier: u
     return false
 }
 
-rect_collides_map :: proc(rect: TRect, tmap: TileMap, tinfo: TileInfo, c_tier: u8) -> bool {
+rect_collides_map :: proc(rect: TRect, tmap: Tile_Map, tinfo: Tile_Info, c_tier: u8) -> bool {
     corners := get_rect_corners(rect)
     min_bound, max_bound := get_map_indecies_bound_by_positions(corners[.NW], corners[.SE], tmap.tile_size)
 
@@ -34,7 +34,7 @@ rect_collides_map :: proc(rect: TRect, tmap: TileMap, tinfo: TileInfo, c_tier: u
     return false
 }
 
-tilemap_rect_movement_collision_occurs :: proc(rect: TRect, p_pos: TVector, tmap: TileMap, tinfo: TileInfo, c_tier: u8) -> bool {
+tilemap_rect_movement_collision_occurs :: proc(rect: TRect, p_pos: TVector, tmap: Tile_Map, tinfo: Tile_Info, c_tier: u8) -> bool {
     if get_rect_position(rect) == p_pos { return false }
 
     rect := rect

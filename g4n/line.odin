@@ -1,6 +1,8 @@
 package g4n
+ 
 import sdl "vendor:sdl3"
-import "core:fmt"
+import "core:log"
+
 ILine :: struct {
     a, b: IVector
 }
@@ -34,17 +36,17 @@ to_fline :: proc{iline_to_fline, tline_to_fline}
 
 
 
-iline_to_tline :: proc(l: ILine) -> (r: TLine) {
+iline_to_tline :: proc(l: ILine, loc := #caller_location) -> (r: TLine) {
     if l.a.x < 0 || l.a.y < 0 || l.b.x < 0 || l.b.y < 0 {
-        log("Uh oh! Casting negative int to unsigned int!")
+        log.logf(.Warning, "Casting negative int to uint from %v.", loc)
     }
     r.a = to_tvector(l.a)
     r.b = to_tvector(l.b)
     return
 }
-fline_to_tline :: proc(l: FLine) -> (r: TLine) {
+fline_to_tline :: proc(l: FLine, loc := #caller_location) -> (r: TLine) {
     if l.a.x < 0 || l.a.y < 0 || l.b.x < 0 || l.b.y < 0 {
-        log("Uh oh! Casting negative int to unsigned int!")
+        log.logf(.Warning, "Casting negative float to uint from %v.", loc)
     }
     r.a = to_tvector(l.a)
     r.b = to_tvector(l.b)
@@ -110,7 +112,7 @@ get_line_midpoint :: proc{iline_midpoint, fline_midpoint, tline_midpoint}
 
 
 
-
+@(require_results)
 get_iline_slope :: proc(l: ILine) -> (result: f32, ok: bool) {
     num := f32(l.b.y - l.a.y)
     denom := f32(l.b.x - l.a.x)
@@ -119,6 +121,7 @@ get_iline_slope :: proc(l: ILine) -> (result: f32, ok: bool) {
 
     return num / denom, true
 }
+@(require_results)
 get_fline_slope :: proc(l: FLine) -> (result: f32, ok: bool) {
     num := l.b.y - l.a.y
     denom := l.b.x - l.a.x
@@ -127,6 +130,7 @@ get_fline_slope :: proc(l: FLine) -> (result: f32, ok: bool) {
 
     return num / denom, true
 }
+@(require_results)
 get_tline_slope :: proc(l: TLine) -> (result: f32, ok: bool) {
     num := f32(l.b.y - l.a.y)
     denom := f32(l.b.x - l.a.x)

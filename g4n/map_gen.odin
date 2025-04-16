@@ -1,6 +1,6 @@
 package g4n
 
-import olog "core:log"
+import "core:log"
 import "core:os"
 import "core:fmt"
 import "core:strings"
@@ -8,7 +8,9 @@ import "core:strconv"
 import "core:unicode/utf8"
 import "core:math/rand"
 
-init_map_set :: proc(tmap: ^TileMap) {
+MAP_DATA_DESINATION :: "data/map/"
+
+init_map_set :: proc(tmap: ^Tile_Map) {
     tmap.set = make([dynamic][dynamic]Tile, tmap.width_tiles, tmap.width_tiles)
     for i in 0..<tmap.width_tiles {
         tmap.set[i] = make([dynamic]Tile, tmap.height_tiles, tmap.height_tiles)
@@ -17,25 +19,32 @@ init_map_set :: proc(tmap: ^TileMap) {
             tmap.set[i][j] = .WALL
         }
     }
+
+    log.logf(.Debug, "Tile Map set data has been created.")
 }
 
-load_map_from_file :: proc(fname: string, tile_size: u32) -> (loaded: TileMap) {
+load_map_from_file :: proc(fname: string, tile_size: u32) -> (loaded: Tile_Map) {
     loaded.tile_size = tile_size
 
-    slice := [?]string { "data/map/", fname }
+    slice := [?]string { MAP_DATA_DESINATION, fname }
     file_path := strings.concatenate(slice[:])
 
-    data, ok := os.read_entire_file_from_filename(file_path)
-    delete(file_path)
-    if !ok {
-		panic("Failure in loading map from file")
+    data: []byte
+    ok: bool
+
+    if data, ok = os.read_entire_file_from_filename(file_path); !ok {
+        log.logf(.Fatal, "Could not read map data from path %v!", file_path)
+        delete(file_path)
+		panic("FATAL crash! See log file for info.")
 	}
+    delete(file_path)
     defer delete(data)
 
     
 
     row := 0
     it := string(data)
+    // See map_data_parse.md for an explanation of the formatting
 	for line in strings.split_lines_iterator(&it) {
         if line[0] == '$' {
             string_data := strings.split(line[1:], "&")
@@ -61,27 +70,32 @@ load_map_from_file :: proc(fname: string, tile_size: u32) -> (loaded: TileMap) {
         row += 1
     }
 
+    log.logf(.Info, "Map loaded from file %v.", file_path)
     return
 }
 
 load_map_patterns :: proc(name: string) -> [2][16][16]Tile {
     ret : [2][16][16]Tile = {}
 
-    slice := [?]string { "assets/map/dat/", name }
+    slice := [?]string { MAP_DATA_DESINATION, name }
     file_path := strings.concatenate(slice[:])
 
-    data, ok := os.read_entire_file_from_filename(file_path)
-    delete(file_path)
-    if !ok {
-		log("Error! Could not read random map patterns file")
-        return ret
+    data: []byte
+    ok: bool
+
+    if data, ok = os.read_entire_file_from_filename(file_path); !ok {
+        log.logf(.Fatal, "Could not read map patterns data from path %v!", file_path)
+        delete(file_path)
+		panic("FATAL crash! See log file for info.")
 	}
+    delete(file_path)
     defer delete(data)
 
     type := 0
     row := 0
 
     it := string(data)
+    // See map_patterns_parse.md for an explanation of the formatting
 	for line in strings.split_lines_iterator(&it) {
         if row == 16 {
             row = 0
@@ -100,10 +114,11 @@ load_map_patterns :: proc(name: string) -> [2][16][16]Tile {
         row += 1
     }
 
+    log.logf(.Info, "Map patterns loaded from file %v.", file_path)
     return ret
 }
 
-generate_random_map :: proc(tmap: ^TileMap, info: TileInfo) {
+generate_random_map :: proc(tmap: ^Tile_Map, info: Tile_Info) {
     tmap.width_tiles = 64
     tmap.height_tiles = 32
 
@@ -134,6 +149,6 @@ generate_random_map :: proc(tmap: ^TileMap, info: TileInfo) {
     }
 
     chosen_spawn := rand.choice(possible_player_spawns[:])
-
     //tmap.player_spawn = chosen_spawn
+    log.logf(.Info, "Finished random map generation.")
 }
